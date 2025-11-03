@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tyco Spec v0.1.0</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="banner">
+    <div class="banner-inner container">
+      <div>
+  <h1 class="brand"><a class="brand-link" href="../index.html">Tyco <small class="tag">typed configuration</small></a></h1>
+      </div>
+      <div class="nav-actions">
+        <div class="versions">
+          <select id="spec-version" aria-label="Spec Version">
+            <option value="" disabled selected>Full Spec</option>
+            <option value="0.1.1">v0.1.1</option>
+            <option value="0.1.0">v0.1.0</option>
+          </select>
+        </div>
+        <a class="gh-btn" href="https://github.com/typedconfig" target="_blank" rel="noopener" aria-label="View on GitHub">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="spec-wrap">
+    <nav class="spec-toc" aria-label="Specification contents">
+      <a href="#overview">Overview</a>
+      <a href="#goals">Goals</a>
+      <a href="#features">Key features</a>
+      <a href="#lexical">Lexical elements</a>
+      <a href="#types">Types & values</a>
+      <a href="#grammar">Grammar (concise)</a>
+      <a href="#examples">Examples</a>
+    </nav>
+
+    <div class="spec-content">
+      <h1 id="overview">Tyco Specification — v0.1.0</h1>
+      <p>Tyco is an explicitly-typed configuration language designed for readable, auditable, and unambiguous configuration files. It favors explicit type declarations, flat composition, and predictable parsing. Tyco aims to suit large configuration systems, terminal workflows, and engineers who prefer clarity and stability in configuration.</p>
+
+      <h2 id="goals">Goals</h2>
+  <ul>
+    <li>Explicit typing: types are declared, not inferred from values.</li>
+    <li>Human-first: pleasant to read and edit in a terminal or editor.</li>
+    <li>Deterministic parsing: every token maps to a clear type.</li>
+    <li>Composable and DRY: favor composition and normalization over deep nesting and repetition.</li>
+    <li>Tooling-friendly: easy to lint, validate, and map to native objects with file/line attribution.</li>
+  </ul>
+
+  <h2>Key features</h2>
+  <ul>
+    <li>Explicit type annotations (e.g. <code>int(42)</code>, <code>date("2025-01-01")</code>).</li>
+    <li>Comments (line <code># ...</code>, block <code>/* ... */</code>).</li>
+    <li><code>#include</code> support for shared fragments (implementation optional).</li>
+    <li>References between objects and attributes (named instances &amp; references).</li>
+    <li>Support for directory layouts and multi-file projects.</li>
+    <li>Built-in linting and validation for missing/typoed attributes and type mismatches.</li>
+    <li>Minimal indentation rules: whitespace groups values; no deep brace nesting by default.</li>
+    <li>Optional templating and lazy evaluation for computed attributes.</li>
+  </ul>
+
+  <h2>Lexical elements</h2>
+  <ul>
+    <li><strong>Identifiers</strong>: `/[A-Za-z_][A-Za-z0-9_-]*/`</li>
+    <li><strong>Strings</strong>: double-quoted; standard escapes supported</li>
+    <li><strong>Integers</strong>: digits, optionally prefixed for hex/octal as implementation-defined</li>
+    <li><strong>Floats</strong>: digits with decimal point</li>
+    <li><strong>Booleans</strong>: <code>true</code>, <code>false</code></li>
+    <li><strong>Comments</strong>: line comments with <code>#</code>, block comments <code>/* ... */</code></li>
+  </ul>
+
+  <h2>Types & values</h2>
+  <p>Values are either literals, collections, or annotated expressions. Annotation form: <code>type(value)</code>.</p>
+  <ul>
+    <li>Literals: strings, ints, floats, booleans.</li>
+    <li>Arrays: <code>[ value, value, ... ]</code></li>
+    <li>Maps: <code>{ key: value, ... }</code></li>
+    <li>Optional/null types: indicated with a <code>?</code> suffix on the type (e.g. <code>int?(null)</code>), and the literal <code>null</code> represents absence.</li>
+  </ul>
+
+  <h2>Grammar (concise)</h2>
+  <pre><code><span class="tok-key">document</span>   = { <span class="tok-key">statement</span> }
+<span class="tok-key">statement</span>  = <span class="tok-key">pair</span> | <span class="tok-key">comment</span> | <span class="tok-key">instance</span>
+<span class="tok-key">pair</span>       = <span class="tok-key">key</span> ':' <span class="tok-key">value</span>
+<span class="tok-key">instance</span>   = <span class="tok-key">type_decl</span> '\n' { <span class="tok-key">item</span> }
+<span class="tok-key">type_decl</span>  = <span class="tok-key">identifier</span> ':' [ <span class="tok-key">type_spec</span> ]
+<span class="tok-key">key</span>        = <span class="tok-key">identifier</span> | <span class="tok-string">string</span>
+<span class="tok-key">value</span>      = <span class="tok-key">annotated</span> | <span class="tok-key">literal</span> | <span class="tok-key">array</span> | <span class="tok-key">map</span> | <span class="tok-key">reference</span>
+<span class="tok-key">annotated</span>  = <span class="tok-key">identifier</span> '(' <span class="tok-key">value</span> ')'
+<span class="tok-key">literal</span>    = <span class="tok-string">string</span> | <span class="tok-key">integer</span> | <span class="tok-key">float</span> | <span class="tok-key">boolean</span> | <span class="tok-key">null</span>
+<span class="tok-key">array</span>      = '[' [ <span class="tok-key">value</span> { ',' <span class="tok-key">value</span> } ] ']'
+<span class="tok-key">map</span>        = '{' [ <span class="tok-key">pair</span> { ',' <span class="tok-key">pair</span> } ] '}'
+<span class="tok-key">reference</span>  = '*' <span class="tok-key">identifier</span>
+</code></pre>
+
+  <h2>Examples</h2>
+  <pre><code><span class="tok-comment"># users</span>
+<span class="tok-key">User</span>:
+  <span class="tok-key">name</span>: <span class="tok-key">str</span>
+  <span class="tok-key">type</span>: <span class="tok-key">str</span>
+  <span class="tok-key">permissions</span>: <span class="tok-key">int</span>
+  - <span class="tok-key">name</span>: <span class="tok-string">"nypr1"</span>, <span class="tok-key">type</span>: <span class="tok-string">"production"</span>, <span class="tok-key">permissions</span>: <span class="tok-number">0x00f1d</span>
+  - <span class="tok-key">name</span>: <span class="tok-string">"nydv1"</span>, <span class="tok-key">type</span>: <span class="tok-string">"dev"</span>, <span class="tok-key">permissions</span>: <span class="tok-number">0x00aaa</span>
+</code></pre>
+
+  <p>Further sections: references, includes, templating, and validation rules can be expanded in later revisions.</p>
+  <script src="../script.js"></script>
+</body>
+</html>
