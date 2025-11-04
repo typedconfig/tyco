@@ -260,7 +260,7 @@
 
     .spec-content th,
     .spec-content td {
-      padding: 0.75rem;
+      padding: 0.2rem 0.75rem;
       text-align: left;
       border-bottom: 1px solid #e5e7eb;
     }
@@ -463,8 +463,17 @@
       <h2 id="string">String</h2>
       <p>Strings are sequences of Unicode characters. Tyco supports both basic strings (with escape sequences) and literal strings (without escape processing).</p>
 
+      <h3>Unquoted Strings</h3>
+      <p>For the majority of configuration values, quotes are not required at all and can be safely omitted. Simple values like hostnames, names, and identifiers work perfectly without quotes:</p>
+
+      <pre><code><span class="tok-type">str</span> <span class="tok-key">hostname</span>: server1.example.com
+<span class="tok-type">str</span> <span class="tok-key">environment</span>: production
+<span class="tok-type">str</span> <span class="tok-key">region</span>: us-east-1</code></pre>
+
+      <p>However, you should use quoted strings when your content contains syntax characters such as parentheses <code>()</code>, square brackets <code>[]</code>, curly brackets <code>{}</code>, commas <code>,</code>, colons <code>:</code>, or newlines. Unquoted strings are treated as non-literal strings and will undergo template expansion (replacing <code>{variable}</code> references), while literal strings (using single quotes) disable this behavior.</p>
+
       <h3>Basic Strings</h3>
-      <p>Basic strings are surrounded by double quotes (<code>"</code>). Any Unicode character may be used except those that must be escaped: backslash (<code>\</code>) and the double quote (<code>"</code>).</p>
+      <p>Basic strings are surrounded by double quotes (<code>"</code>). Any Unicode character may be used except those that must be escaped: backslash (<code>\</code>) and the double quote (<code>"</code>). Basic strings support template expansion.</p>
 
       <pre><code><span class="tok-type">str</span> <span class="tok-key">message</span>: <span class="tok-string">"Hello, world!"</span>
 <span class="tok-type">str</span> <span class="tok-key">path</span>: <span class="tok-string">"C:\\Users\\name"</span></code></pre>
@@ -498,7 +507,7 @@
 Roses are red
 Violets are blue
 Tyco is typed
-And so are you"""</span></code></pre>
+And you're my type too"""</span></code></pre>
 
       <p>A backslash at the end of a line will trim all whitespace (including newlines) up to the next non-whitespace character or closing delimiter.</p>
 
@@ -507,10 +516,11 @@ And so are you"""</span></code></pre>
     sentence."""</span>  <span class="tok-comment"># Renders as: "This is a very long sentence."</span></code></pre>
 
       <h3>Literal Strings</h3>
-      <p>Literal strings are surrounded by single quotes (<code>'</code>). No escape sequences are processed. What you see is what you get.</p>
+      <p>Literal strings are surrounded by single quotes (<code>'</code>). No escape sequences are processed, and template expansion is disabled. What you see is what you get. Use literal strings when you need the exact text without any processing.</p>
 
       <pre><code><span class="tok-type">str</span> <span class="tok-key">winpath</span>: <span class="tok-string">'C:\Users\name'</span>  <span class="tok-comment"># Backslashes are literal</span>
-<span class="tok-type">str</span> <span class="tok-key">regex</span>: <span class="tok-string">'\d{2}-\w+'</span></code></pre>
+<span class="tok-type">str</span> <span class="tok-key">regex</span>: <span class="tok-string">'\d{2}-\w+'</span>
+<span class="tok-type">str</span> <span class="tok-key">template</span>: <span class="tok-string">'{variable}'</span>  <span class="tok-comment"># No template expansion - literal {variable}</span></code></pre>
 
       <h3>Multi-line Literal Strings</h3>
       <p>Multi-line literal strings are surrounded by three single quotes (<code>'''</code>).</p>
@@ -565,7 +575,7 @@ Second line'''</span></code></pre>
 <span class="tok-type">datetime</span> <span class="tok-key">updated</span>: <span class="tok-string">2024-01-15T14:30:00Z</span>  <span class="tok-comment"># With timezone</span></code></pre>
 
       <h2 id="array">Array</h2>
-      <p>Arrays are collections of values enclosed in square brackets. Values are separated by commas.</p>
+      <p>Arrays are collections of values enclosed in square brackets. Values are separated by commas. Trailing commas are allowed and can improve readability when arrays span multiple lines.</p>
 
       <pre><code><span class="tok-type">int[]</span> <span class="tok-key">ports</span>: <span class="tok-string">[</span><span class="tok-number">80</span><span class="tok-string">,</span> <span class="tok-number">443</span><span class="tok-string">,</span> <span class="tok-number">8080</span><span class="tok-string">]</span>
 <span class="tok-type">str[]</span> <span class="tok-key">tags</span>: <span class="tok-string">["production", "web", "critical"]</span></code></pre>
@@ -575,7 +585,7 @@ Second line'''</span></code></pre>
       <pre><code><span class="tok-type">str[]</span> <span class="tok-key">servers</span>: <span class="tok-string">[
   "server1.example.com",
   "server2.example.com",
-  "server3.example.com"
+  "server3.example.com",  <span class="tok-comment"># Trailing comma allowed</span>
 ]</span></code></pre>
 
       <p>Empty arrays are allowed:</p>
@@ -694,20 +704,20 @@ Second line'''</span></code></pre>
       <p>All instances from all blocks are collected together into a single array for the <code>Server</code> type.</p>
 
       <h2 id="instances">Struct Instances</h2>
-      <p>Struct instances are created using a dash (<code>-</code>) followed by field values. Values can be provided in order or as named assignments.</p>
+      <p>Struct instances are created using a dash (<code>-</code>) followed by field values. Values can be provided in order or as named assignments. Trailing commas are allowed in instance declarations.</p>
 
       <h3>Positional Values</h3>
-      <p>When using positional values, they must match the order of primary keys first, then other required fields.</p>
+      <p>When using positional values, they must match the order of struct's fields.</p>
 
       <pre><code><span class="tok-key">User</span>:
  *<span class="tok-type">str</span> <span class="tok-key">username</span>:
   <span class="tok-type">str</span> <span class="tok-key">email</span>:
   <span class="tok-type">int</span> <span class="tok-key">age</span>:
   - <span class="tok-string">alice</span>, <span class="tok-string">alice@example.com</span>, <span class="tok-number">30</span>
-  - <span class="tok-string">bob</span>, <span class="tok-string">bob@example.com</span>, <span class="tok-number">25</span></code></pre>
+  - <span class="tok-string">bob</span>, <span class="tok-string">bob@example.com</span>, <span class="tok-number">25</span>,  <span class="tok-comment"># Trailing comma allowed</span></code></pre>
 
       <h3>Named Values</h3>
-      <p>Values can be explicitly named using <code>field_name: value</code> syntax.</p>
+      <p>Values can be explicitly named using <code>field_name: value</code> syntax. These can be ommitted if using defaults, and for clarity should follow the order of field names in the schema, but technically can be in any order.</p>
 
       <pre><code><span class="tok-key">User</span>:
  *<span class="tok-type">str</span> <span class="tok-key">username</span>:
@@ -754,7 +764,7 @@ Second line'''</span></code></pre>
   - <span class="tok-string">cache_service</span>, <span class="tok-obj">Database(cache_db)</span></code></pre>
 
       <h3>Inline Object Creation</h3>
-      <p>Objects can be created inline by providing all required field values in the reference syntax.</p>
+      <p>Objects can be created inline by providing all required field values in the reference syntax. Trailing commas are allowed in inline object creation.</p>
 
       <pre><code><span class="tok-key">Person</span>:
   <span class="tok-type">str</span> <span class="tok-key">name</span>:
@@ -763,7 +773,7 @@ Second line'''</span></code></pre>
 <span class="tok-key">Server</span>:
   <span class="tok-type">str</span> <span class="tok-key">hostname</span>:
   <span class="tok-type">Person</span> <span class="tok-key">owner</span>:
-  - <span class="tok-string">server1</span>, <span class="tok-obj">Person(Alice, 30)</span>  <span class="tok-comment"># Creates Person inline</span></code></pre>
+  - <span class="tok-string">server1</span>, <span class="tok-obj">Person(Alice, 30,)</span>  <span class="tok-comment"># Creates Person inline, trailing comma allowed</span></code></pre>
 
       <h2 id="templates">String Templates</h2>
       <p>String values support template interpolation using curly braces <code>{field}</code>. Templates are resolved after all instances are created.</p>
@@ -893,7 +903,7 @@ Second line'''</span></code></pre>
 </code></pre>
 
       <h2 id="example">Complete Example</h2>
-      <p>Here is a complete example demonstrating many Tyco features:</p>
+      <p>Here is a complete example demonstrating many of Tyco's features:</p>
 
       <pre><code><span class="tok-comment"># Global configuration</span>
 <span class="tok-type">str</span> <span class="tok-key">environment</span>: <span class="tok-string">production</span>
