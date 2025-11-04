@@ -1,0 +1,25 @@
+# Test template expansion using {var} syntax
+
+str environment: production
+str region: us-east-1
+
+# Templates in global values
+str url: {environment}-{region}
+str path: /var/log/{environment}
+
+# Templates in struct instances
+Server:
+ *str name:
+  str env:
+  str log_path:
+  str description:
+  - "web1", "production", "/logs/{env}/{name}", "Server {name} in {env}"
+  - "db1", "staging", "/logs/{env}/{name}", "Database {name}"
+
+# Nested template references
+Config:
+ *str key:
+  str value:
+  str message:
+  - "region_key", region, "Region is {value}"
+  - "env_key", environment, "Environment: {value}"

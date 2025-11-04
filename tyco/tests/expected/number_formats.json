@@ -1,0 +1,33 @@
+{
+  "hex_value": 255,
+  "hex_small": 16,
+  "hex_large": 3735928559,
+  "octal_value": 63,
+  "octal_small": 8,
+  "octal_large": 493,
+  "binary_value": 15,
+  "binary_small": 2,
+  "binary_large": 213,
+  "decimal_value": 255,
+  "decimal_negative": -100,
+  "Config": [
+    {
+      "name": "user1",
+      "permissions": 1877,
+      "flags": 10,
+      "mask": 420
+    },
+    {
+      "name": "user2",
+      "permissions": 511,
+      "flags": 255,
+      "mask": 255
+    },
+    {
+      "name": "user3",
+      "permissions": 493,
+      "flags": 15,
+      "mask": 420
+    }
+  ]
+}

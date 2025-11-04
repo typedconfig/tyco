@@ -1,0 +1,46 @@
+{
+  "value1": "test",
+  "value2": "another",
+  "empty_int_array": [],
+  "empty_str_array": [],
+  "Item": [
+    {
+      "id": "item1",
+      "description": "A long description",
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
+      "quantity": 100
+    },
+    {
+      "id": "item2",
+      "description": "Short desc",
+      "tags": [],
+      "quantity": 0
+    },
+    {
+      "id": "item3",
+      "description": "Another item",
+      "tags": [
+        "single"
+      ],
+      "quantity": 42
+    }
+  ],
+  "EdgeCase": [
+    {
+      "name": "test1",
+      "optional": null,
+      "list": []
+    },
+    {
+      "name": "test2",
+      "optional": "value",
+      "list": [
+        "a",
+        "b"
+      ]
+    }
+  ]
+}

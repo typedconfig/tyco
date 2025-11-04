@@ -1,0 +1,35 @@
+# Test various string quoting styles and escape sequences
+
+# Double quoted strings
+str double_quoted: "hello world"
+str with_quotes: "she said \"hello\""
+str with_backslash: "path\\to\\file"
+str with_newline: "line1\nline2"
+str with_tab: "col1\tcol2"
+str with_unicode: "emoji: \u263A"
+
+# Single quoted strings (no escape processing except for '')
+str single_quoted: 'hello world'
+str literal_backslash: 'no\nescape'
+
+# Triple double quoted strings (multiline)
+str triple_double: """This is
+a multiline
+string"""
+
+# Triple single quoted strings (multiline, literal)
+str triple_single: '''Another
+multiline
+string'''
+
+# Struct with various string types
+Message:
+ *str id:
+  str content:
+  str formatted:
+  - "msg1", "simple text", "Simple: {content}"
+  - "msg2", "text with \"quotes\"", "Quoted: {content}"
+  - "msg3", """multiline
+message
+here""", "Multi: {content}"
+  - "msg4", 'literal\ntext', "Literal: {content}"

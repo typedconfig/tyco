@@ -1,0 +1,30 @@
+# Test different integer number formats: hex, octal, binary
+
+# Hexadecimal (0x prefix)
+int hex_value: 0xff
+int hex_small: 0x10
+int hex_large: 0xDEADBEEF
+
+# Octal (0o prefix)
+int octal_value: 0o77
+int octal_small: 0o10
+int octal_large: 0o755
+
+# Binary (0b prefix)
+int binary_value: 0b1111
+int binary_small: 0b10
+int binary_large: 0b11010101
+
+# Regular decimal
+int decimal_value: 255
+int decimal_negative: -100
+
+# Struct with different number formats
+Config:
+ *str name:
+  int permissions:
+  int flags:
+  int mask:
+  - "user1", 0x755, 0b1010, 0o644
+  - "user2", 0o777, 0xFF, 0b11111111
+  - "user3", 493, 15, 420

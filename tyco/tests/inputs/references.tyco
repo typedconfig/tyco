@@ -1,0 +1,20 @@
+# Test references between structs using primary keys (*)
+
+# Define a struct with primary key
+Person:
+ *str name:
+  int age:
+  - "Alice", 30
+  - "Bob", 25
+  - "Charlie", 35
+
+# Reference Person instances using Person(name)
+Team:
+ *str team_name:
+  Person leader:
+  Person[] members:
+  - "Engineering", Person(Alice), [Person(Bob), Person(Charlie)]
+  - "Design", Person(Charlie), [Person(Alice)]
+
+# Global reference to a Person
+Person main_contact: Person(Bob)

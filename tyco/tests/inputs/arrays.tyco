@@ -1,0 +1,19 @@
+# Test array types
+
+str[] tags: ["python", "config", "parser"]
+int[] numbers: [1, 2, 3, 4, 5]
+float[] prices: [9.99, 19.99, 29.99]
+bool[] flags: [true, false, true]
+
+# Empty arrays
+int[] empty_array: []
+
+# Arrays in structs
+Product:
+ *str name:
+  str[] tags:
+  int[] sizes:
+  float[] prices:
+  - "shirt", ["clothing", "apparel"], [1, 2, 3, 4], [19.99, 24.99, 29.99]
+  - "pants", ["clothing", "bottoms"], [], [39.99, 49.99]
+  - "hat", [], [7], [14.99]

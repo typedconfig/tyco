@@ -1,0 +1,28 @@
+# Test edge cases: comments, empty values
+
+# Line comments
+str value1: "test"  # this is a comment
+str value2: "another"
+
+# Empty arrays
+int[] empty_int_array: []
+str[] empty_str_array: []
+
+# Struct with comments
+Item:
+ *str id:
+  str description:
+  str[] tags:
+  int quantity:
+  # Schema comment
+  - "item1", "A long description", ["tag1", "tag2"], 100
+  - "item2", "Short desc", [], 0  # inline comment
+  - "item3", "Another item", ["single"], 42
+
+# Mixed edge cases
+EdgeCase:
+ *str name:
+  ?str optional:
+  str[] list:
+  - "test1", null, []
+  - "test2", "value", ["a", "b"]

@@ -1,0 +1,59 @@
+{
+  "Server": [
+    {
+      "name": "web1",
+      "env": "production",
+      "port": 8080,
+      "ssl": false,
+      "region": null
+    },
+    {
+      "name": "web2",
+      "env": "staging",
+      "port": 8080,
+      "ssl": false,
+      "region": null
+    },
+    {
+      "name": "web3",
+      "env": "production",
+      "port": 9090,
+      "ssl": true,
+      "region": null
+    },
+    {
+      "name": "db1",
+      "env": "production",
+      "port": 5432,
+      "ssl": false,
+      "region": "us-east-1"
+    }
+  ],
+  "Application": [
+    {
+      "app_name": "api",
+      "tags": [
+        "default"
+      ],
+      "ports": [
+        8080
+      ]
+    },
+    {
+      "app_name": "web",
+      "tags": [
+        "frontend",
+        "web"
+      ],
+      "ports": [
+        80,
+        443
+      ]
+    },
+    {
+      "app_name": "worker",
+      "tags": [],
+      "ports": []
+    }
+  ]
+}

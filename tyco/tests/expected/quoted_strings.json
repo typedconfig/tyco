@@ -1,0 +1,34 @@
+{
+  "double_quoted": "hello world",
+  "with_quotes": "she said \"hello\"",
+  "with_backslash": "path\\to\\file",
+  "with_newline": "line1\nline2",
+  "with_tab": "col1\tcol2",
+  "with_unicode": "emoji: \u263a",
+  "single_quoted": "hello world",
+  "literal_backslash": "no\\nescape",
+  "triple_double": "This is\na multiline\nstring",
+  "triple_single": "Another\nmultiline\nstring",
+  "Message": [
+    {
+      "id": "msg1",
+      "content": "simple text",
+      "formatted": "Simple: simple text"
+    },
+    {
+      "id": "msg2",
+      "content": "text with \"quotes\"",
+      "formatted": "Quoted: text with \"quotes\""
+    },
+    {
+      "id": "msg3",
+      "content": "multiline\nmessage\nhere",
+      "formatted": "Multi: multiline\nmessage\nhere"
+    },
+    {
+      "id": "msg4",
+      "content": "literal\\ntext",
+      "formatted": "Literal: literal\ntext"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "tags": [
+    "python",
+    "config",
+    "parser"
+  ],
+  "numbers": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "prices": [
+    9.99,
+    19.99,
+    29.99
+  ],
+  "flags": [
+    true,
+    false,
+    true
+  ],
+  "empty_array": [],
+  "Product": [
+    {
+      "name": "shirt",
+      "tags": [
+        "clothing",
+        "apparel"
+      ],
+      "sizes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "prices": [
+        19.99,
+        24.99,
+        29.99
+      ]
+    },
+    {
+      "name": "pants",
+      "tags": [
+        "clothing",
+        "bottoms"
+      ],
+      "sizes": [],
+      "prices": [
+        39.99,
+        49.99
+      ]
+    },
+    {
+      "name": "hat",
+      "tags": [],
+      "sizes": [
+        7
+      ],
+      "prices": [
+        14.99
+      ]
+    }
+  ]
+}

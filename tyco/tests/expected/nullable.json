@@ -1,0 +1,40 @@
+{
+  "optional_string": null,
+  "optional_with_value": "present",
+  "optional_int": null,
+  "optional_int_value": 42,
+  "optional_bool": null,
+  "optional_float": 3.14,
+  "optional_array": null,
+  "optional_array_with_value": [
+    1,
+    2,
+    3
+  ],
+  "User": [
+    {
+      "username": "alice",
+      "email": "alice@example.com",
+      "nickname": "Ali",
+      "age": 30,
+      "roles": [
+        "admin",
+        "user"
+      ]
+    },
+    {
+      "username": "bob",
+      "email": "bob@example.com",
+      "nickname": null,
+      "age": null,
+      "roles": null
+    },
+    {
+      "username": "charlie",
+      "email": "charlie@example.com",
+      "nickname": "Chuck",
+      "age": 25,
+      "roles": []
+    }
+  ]
+}

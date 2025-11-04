@@ -36,3 +36,43 @@ def _run_and_compare(input_name, expected_name, tmp_path):
 
 def test_simple_inputs(tmp_path):
     _run_and_compare('simple1.tyco', 'simple1.json', tmp_path)
+
+
+def test_basic_types(tmp_path):
+    _run_and_compare('basic_types.tyco', 'basic_types.json', tmp_path)
+
+
+def test_datetime_types(tmp_path):
+    _run_and_compare('datetime_types.tyco', 'datetime_types.json', tmp_path)
+
+
+def test_arrays(tmp_path):
+    _run_and_compare('arrays.tyco', 'arrays.json', tmp_path)
+
+
+def test_nullable(tmp_path):
+    _run_and_compare('nullable.tyco', 'nullable.json', tmp_path)
+
+
+def test_references(tmp_path):
+    _run_and_compare('references.tyco', 'references.json', tmp_path)
+
+
+def test_templates(tmp_path):
+    _run_and_compare('templates.tyco', 'templates.json', tmp_path)
+
+
+def test_defaults(tmp_path):
+    _run_and_compare('defaults.tyco', 'defaults.json', tmp_path)
+
+
+def test_quoted_strings(tmp_path):
+    _run_and_compare('quoted_strings.tyco', 'quoted_strings.json', tmp_path)
+
+
+def test_number_formats(tmp_path):
+    _run_and_compare('number_formats.tyco', 'number_formats.json', tmp_path)
+
+
+def test_edge_cases(tmp_path):
+    _run_and_compare('edge_cases.tyco', 'edge_cases.json', tmp_path)

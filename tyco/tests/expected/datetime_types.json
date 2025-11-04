@@ -1,0 +1,28 @@
+{
+  "simple_date": "2025-01-15",
+  "simple_time": "14:30:00",
+  "time_with_millis": "14:30:00.123000",
+  "simple_datetime": "2025-01-15T14:30:00+00:00",
+  "datetime_with_tz": "2025-01-15T14:30:00+05:00",
+  "datetime_with_millis": "2025-01-15T14:30:00.123456+00:00",
+  "Schedule": [
+    {
+      "name": "morning",
+      "scheduled_date": "2025-01-15",
+      "scheduled_time": "09:00:00",
+      "start_datetime": "2025-01-15T09:00:00+00:00"
+    },
+    {
+      "name": "afternoon",
+      "scheduled_date": "2025-01-15",
+      "scheduled_time": "14:30:00",
+      "start_datetime": "2025-01-15T14:30:00-08:00"
+    },
+    {
+      "name": "evening",
+      "scheduled_date": "2025-12-31",
+      "scheduled_time": "18:45:30.500000",
+      "start_datetime": "2025-12-31T18:45:30.500000+00:00"
+    }
+  ]
+}
