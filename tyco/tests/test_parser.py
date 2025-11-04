@@ -21,7 +21,7 @@ def run_in_process_typo_parser(path):
     # TycoLexer.from_path will cache and call process()
     TycoLexer.from_path(context, str(path))
     # ensure content rendered
-    context.render_content()
+    context._render_content()
     return context.to_json()
 
 

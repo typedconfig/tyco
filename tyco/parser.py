@@ -12,6 +12,9 @@ import itertools
 import collections
 
 
+__all__ = ['Struct', 'load']
+
+
 ASCII_CTRL = frozenset(chr(i) for i in range(32)) | frozenset(chr(127))
 ILLEGAL_STR_CHARS           = ASCII_CTRL - frozenset("\t")
 ILLEGAL_STR_CHARS_MULTILINE = ASCII_CTRL - frozenset("\r\n\t")
@@ -82,12 +85,12 @@ class TycoLexer:
 
     @classmethod
     def from_path(cls, context, path):
-        if path not in context.path_cache:
+        if path not in context._path_cache:
             with open(path) as f:
                 lines = list(f.readlines())
             lexer = cls(context, lines)
             lexer.process()
-            context.path_cache[path] = lexer
+            context._path_cache[path] = lexer
         return lexer
 
     def __init__(self, context, lines):
@@ -119,10 +122,10 @@ class TycoLexer:
             elif match := re.match(self.STRUCT_BLOCK_REGEX, line):
                 type_name = match.groups()[0]
                 debug(f'Found match for {type_name}:')
-                if type_name not in self.context.structs:
-                    struct = self.context.add_struct(type_name)
+                if type_name not in self.context._structs:
+                    struct = self.context._add_struct(type_name)
                     self._load_schema(struct)
-                struct = self.context.structs[type_name]
+                struct = self.context._structs[type_name]
                 self._load_local_defaults_and_instances(struct)
                 continue
             elif not strip_comments(line):
@@ -140,7 +143,7 @@ class TycoLexer:
         self.lines.appendleft(default_text)
         attr, delim = self._load_tyco_attr2()
         attr.apply_schema_info(type_name=type_name, attr_name=attr_name, is_nullable=is_nullable, is_array=is_array)
-        self.context.set_global_attr(attr_name, attr)
+        self.context._set_global_attr(attr_name, attr)
 
     def _load_schema(self, struct):
         debug(f'Loading schema for {struct}')
@@ -245,11 +248,11 @@ class TycoLexer:
             type_name = match.groups()[0]
             self.lines[0] = self.lines[0][match.span()[1]:]
             inst_args = self._load_array(')')
-            if type_name not in self.context.structs or self.context.structs[type_name].primary_keys:
+            if type_name not in self.context._structs or self.context._structs[type_name].primary_keys:
                 attr = TycoReference(self.context, inst_args, type_name)
             else:
                 default_kwargs = self.defaults[type_name]
-                attr = self.context.structs[type_name].create_inline_instance(inst_args, default_kwargs)
+                attr = self.context._structs[type_name].create_inline_instance(inst_args, default_kwargs)
             delim = self._strip_next_delim(good_delim)
         elif ch in ('"', "'"):                                      # quoted string
             if (triple := ch*3) == self.lines[0][:3]:
@@ -375,73 +378,73 @@ class TycoLexer:
 class TycoContext:
 
     def __init__(self):
-        self.path_cache = {}       # {path : TycoPath()}
-        self.structs    = {}       # {type_name : TycoStruct()}
-        self.globals    = {}       # {attr_name : TycoValue|TycoInstance|TycoArray|TycoReference}
+        self._path_cache = {}       # {path : TycoPath()}
+        self._structs    = {}       # {type_name : TycoStruct()}
+        self._globals    = {}       # {attr_name : TycoValue|TycoInstance|TycoArray|TycoReference}
 
-    def set_global_attr(self, attr_name, attr):
-        if attr_name in self.globals:
+    def _set_global_attr(self, attr_name, attr):
+        if attr_name in self._globals:
             raise Exception(f'Duplicate global attribute: {attr_name}')
-        self.globals[attr_name] = attr
+        self._globals[attr_name] = attr
 
-    def add_struct(self, type_name):
-        self.structs[type_name] = struct = TycoStruct(self, type_name)
+    def _add_struct(self, type_name):
+        self._structs[type_name] = struct = TycoStruct(self, type_name)
         debug(f'Adding new struct {struct}')
         return struct
 
-    def render_content(self):
-        self.set_parents()
-        self.render_base_content()
-        self.load_primary_keys()
-        self.render_references()
-        self.render_templates()
+    def _render_content(self):
+        self._set_parents()
+        self._render_base_content()
+        self._load_primary_keys()
+        self._render_references()
+        self._render_templates()
 
-    def set_parents(self):
-        for attr_name, attr in self.globals.items():
-            attr.set_parent(self.globals)
-        for struct in self.structs.values():
+    def _set_parents(self):
+        for attr_name, attr in self._globals.items():
+            attr.set_parent(self._globals)
+        for struct in self._structs.values():
             for inst in struct.instances:
                 inst.set_parent()
 
-    def render_base_content(self):
-        for attr_name, attr in self.globals.items():
+    def _render_base_content(self):
+        for attr_name, attr in self._globals.items():
             attr.render_base_content()
-        for struct in self.structs.values():
+        for struct in self._structs.values():
             for inst in struct.instances:
                 inst.render_base_content()
 
-    def load_primary_keys(self):                          # primary keys can only be base types w/o templating
-        for struct in self.structs.values():
+    def _load_primary_keys(self):                          # primary keys can only be base types w/o templating
+        for struct in self._structs.values():
             struct.load_primary_keys()
 
-    def render_references(self):
-        for attr_name, attr in self.globals.items():
+    def _render_references(self):
+        for attr_name, attr in self._globals.items():
             attr.render_references()
-        for struct in self.structs.values():
+        for struct in self._structs.values():
             for inst in struct.instances:
                 inst.render_references()
 
-    def render_templates(self):
-        for attr_name, attr in self.globals.items():
+    def _render_templates(self):
+        for attr_name, attr in self._globals.items():
             attr.render_templates()
-        for struct in self.structs.values():
+        for struct in self._structs.values():
             for inst in struct.instances:
                 inst.render_templates()
 
+    def get_global_objects(self):
+        return {a : i.get_object() for a, i in self._globals.items()}
+
     def get_objects(self):
         objects = {}
-        for type_name, struct in self.structs.items():
+        for type_name, struct in self._structs.items():
             objects[type_name] = [i.get_object() for i in struct.instances]
         return objects
 
-    def get_global_objects(self):
-        return {a : i.get_object() for a, i in self.globals.items()}
-
     def to_json(self):
         json_content = {}
-        for attr_name, attr in self.globals.items():
+        for attr_name, attr in self._globals.items():
             json_content[attr_name] = attr.to_json()
-        for type_name, struct in self.structs.items():
+        for type_name, struct in self._structs.items():
             if not struct.primary_keys:                     # we don't serialize inline instances
                 continue
             json_content[type_name] = struct_content = []
@@ -590,7 +593,7 @@ class TycoInstance:
     def get_object(self):
         if self._object is None:
             kwargs = {a : v.get_object() for a, v in self.inst_kwargs.items()}
-            self._object = Struct.create_object(self.type_name, **kwargs)
+            self._object = Struct._create_object(self.type_name, **kwargs)
         return self._object
 
     def to_json(self):
@@ -644,9 +647,9 @@ class TycoReference:                    # Lazy container class to refer to insta
     def render_references(self):
         if self.rendered is not self._unrendered:
             raise Exception(f'Rendered multiple times {self}')
-        if self.type_name not in self.context.structs:
+        if self.type_name not in self.context._structs:
             raise Exception(f'Bad type name for reference: {self.type_name} {self.inst_args}')
-        struct = self.context.structs[self.type_name]
+        struct = self.context._structs[self.type_name]
         self.rendered = struct.load_reference(self.inst_args)
 
     def render_templates(self):
@@ -872,7 +875,7 @@ class Struct(types.SimpleNamespace):
         cls.registry[cls.__name__] = cls
 
     @classmethod
-    def create_object(cls, type_name, *args, **kwargs):
+    def _create_object(cls, type_name, *args, **kwargs):
         if type_name not in cls.registry:
             cls.registry[type_name] = type(type_name, (cls,), {})
         obj = cls.registry[type_name](*args, **kwargs)
@@ -890,5 +893,5 @@ def load(path):
     context = TycoContext()
     tyco_lexer = TycoLexer.from_path(context, path)
     tyco_lexer.process()
-    context.render_content()
+    context._render_content()
     return context
