@@ -438,7 +438,7 @@
           <div class="code-header">Tyco</div>
           <pre class="code-block tyco"><code><span class="tok-type">str</span> <span class="tok-key">timezone</span>: <span class="tok-string">UTC</span>     <span class="tok-comment"># this is a global config setting</span>
 
-<span class="tok-key">Application</span>:
+<span class="tok-key">Application</span>:                     <span class="tok-comment"># schema defined first, followed by instance creation</span>
   <span class="tok-type">str</span> <span class="tok-key">service</span>:
   <span class="tok-type">str</span> <span class="tok-key">profile</span>:
   <span class="tok-type">str</span> <span class="tok-key">command</span>: <span class="tok-string">start_app {service}.{profile} -p {port.number}</span>
@@ -449,7 +449,7 @@
   - <span class="tok-key">service</span>: <span class="tok-string">database</span>,  <span class="tok-key">profile</span>: <span class="tok-string">mysql</span>,   <span class="tok-key">host</span>: <span class="tok-obj">Host(prod-02-us)</span>, <span class="tok-key">port</span>: <span class="tok-obj">Port(http_mysql)</span>
                       
 <span class="tok-key">Host</span>:
- *<span class="tok-type">str</span> <span class="tok-key">hostname</span>:  <span class="tok-comment"># star character (*) indicates primary key for lookups</span>
+ *<span class="tok-type">str</span> <span class="tok-key">hostname</span>:  <span class="tok-comment"># star character (*) used as reference primary key</span>
   <span class="tok-type">int</span> <span class="tok-key">cores</span>:
   <span class="tok-type">bool</span> <span class="tok-key">hyperthreaded</span>: <span class="tok-boolean">true</span>
   <span class="tok-type">str</span> <span class="tok-key">os</span>: <span class="tok-string">Debian</span>
@@ -459,7 +459,7 @@
 <span class="tok-key">Port</span>:
  *<span class="tok-type">str</span> <span class="tok-key">name</span>:
   <span class="tok-type">int</span> <span class="tok-key">number</span>:
-  - <span class="tok-string">http_web</span>,   <span class="tok-number">80</span>
+  - <span class="tok-string">http_web</span>,   <span class="tok-number">80</span>  <span class="tok-comment"># can skip attribute keys when obvious</span>
   - <span class="tok-string">http_mysql</span>, <span class="tok-number">3306</span></code></pre>
         </div>
 
