@@ -882,22 +882,9 @@ class Struct(types.SimpleNamespace):
         pass
 
 
-class Application(Struct):
-
-    def validate(self):
-        pass
-
-
 def load(path):
     context = TycoContext()
     tyco_lexer = TycoLexer.from_path(context, path)
     tyco_lexer.process()
     context.render_content()
     return context
-
-
-if __name__ == '__main__':
-    context = load('tests/inputs/simple1.tyco')
-    instances = context.get_objects()['Application']
-    global_objects = context.get_global_objects()
-    breakpoint()
