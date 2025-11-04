@@ -104,10 +104,73 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .spec-sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+
+    .spec-sidebar h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .spec-sidebar nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .spec-sidebar a {
+      color: #4b5563;
+      text-decoration: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+    }
+
+    .spec-sidebar a:hover {
+      background: #f3f4f6;
+      color: #1e6fff;
+      border-left-color: #1e6fff;
+    }
+
+    .spec-sidebar a.active {
+      background: #eff6ff;
+      color: #1e6fff;
+      border-left-color: #1e6fff;
+      font-weight: 500;
     }
 
     .spec-content {
+      flex: 1;
       max-width: 800px;
+    }
+
+    @media (max-width: 768px) {
+      .spec-wrap {
+        flex-direction: column;
+      }
+
+      .spec-sidebar {
+        position: static;
+        width: 100%;
+        max-height: none;
+      }
     }
 
     .spec-content h1 {
@@ -188,6 +251,18 @@
   </header>
 
   <div class="spec-wrap">
+    <aside class="spec-sidebar">
+      <h3>Quick Links</h3>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#goals">Goals</a>
+        <a href="#features">Key Features</a>
+        <a href="#lexical">Lexical Elements</a>
+        <a href="#types">Types & Values</a>
+        <a href="#grammar">Grammar</a>
+        <a href="#examples">Examples</a>
+      </nav>
+    </aside>
     <div class="spec-content">
       <h1 id="overview">Tyco Specification — v0.1.1</h1>
       <p>Tyco is an explicitly-typed configuration language designed for readable, auditable, and unambiguous configuration files. It favors explicit type declarations, flat composition, and predictable parsing. Tyco aims to suit large configuration systems, terminal workflows, and engineers who prefer clarity and stability in configuration.</p>
@@ -269,6 +344,31 @@
         window.location.href = `${version}.html`;
       }
     });
+
+    // Highlight active section in sidebar as user scrolls
+    const sections = document.querySelectorAll('h1[id], h2[id]');
+    const navLinks = document.querySelectorAll('.spec-sidebar a');
+
+    function updateActiveLink() {
+      let currentSection = '';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 100;
+        if (window.scrollY >= sectionTop) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${currentSection}`) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink(); // Set initial active state
   </script>
 </body>
 </html>
