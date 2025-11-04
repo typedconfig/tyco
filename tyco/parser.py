@@ -49,10 +49,6 @@ def sub_escape_sequences(content, basic_string=False):
     return escaped
 
 
-def debug(*content):
-    print(*content, file=sys.stderr)
-
-
 def strip_comments(line):
     content, *comments = line.split('#', maxsplit=1)
     if comments and (invalid := set(comments[0].rstrip(os.linesep)) & ILLEGAL_STR_CHARS):
@@ -121,7 +117,6 @@ class TycoLexer:
                 continue
             elif match := re.match(self.STRUCT_BLOCK_REGEX, line):
                 type_name = match.groups()[0]
-                debug(f'Found match for {type_name}:')
                 if type_name not in self.context._structs:
                     struct = self.context._add_struct(type_name)
                     self._load_schema(struct)
@@ -133,7 +128,6 @@ class TycoLexer:
             raise Exception(f'Malformatted config file: {line!r}')
 
     def _load_global(self, line, match):
-        debug(f'Loading global: {line}')
         options, type_name, array_flag, attr_name = match.groups()
         is_array = array_flag == '[]'
         is_nullable = options == '?'
@@ -146,7 +140,6 @@ class TycoLexer:
         self.context._set_global_attr(attr_name, attr)
 
     def _load_schema(self, struct):
-        debug(f'Loading schema for {struct}')
         if struct.type_name in self.defaults:
             raise Exception(f'This should not happen: {struct.type_name} in {self.defaults}')
         self.defaults[struct.type_name] = {}
@@ -182,7 +175,6 @@ class TycoLexer:
                 self.defaults[struct.type_name][attr_name] = attr
 
     def _load_local_defaults_and_instances(self, struct):
-        debug(f'Loading defaults and instances for {struct}')
         while True:
             if not self.lines:
                 break
@@ -199,7 +191,6 @@ class TycoLexer:
             line = self.lines.popleft()
             if match := re.match(self.STRUCT_DEFAULTS_REGEX, line):
                 attr_name = match.groups()
-                debug(f'New default for {struct}: {attr_name}')
                 if attr_name not in struct.attr_types:
                     raise Exception(f'Setting invalid default of {attr_name} for {struct}')
                 default_text = line.split(':', maxsplit=1)[1].lstrip()
@@ -210,7 +201,6 @@ class TycoLexer:
                 else:
                     self.defaults[struct.type_name].pop(attr_name, None)          # if empty remove previous defaults
             elif match := re.match(self.STRUCT_INSTANCE_REGEX, line):
-                debug(f'Parsing new instance for {struct}')
                 self.lines.appendleft(line.split('-', maxsplit=1)[1].lstrip())
                 inst_args = []
                 while True:
@@ -389,7 +379,6 @@ class TycoContext:
 
     def _add_struct(self, type_name):
         self._structs[type_name] = struct = TycoStruct(self, type_name)
-        debug(f'Adding new struct {struct}')
         return struct
 
     def _render_content(self):
