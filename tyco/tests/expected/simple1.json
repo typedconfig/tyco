@@ -1,6 +1,9 @@
 {
   "project": "demo",
   "project_name": "demo.new",
+  "start_date": "2025-10-01",
+  "start_time": "12:01:01",
+  "start_dt": "2025-10-01T12:01:01+00:00",
   "host": {"cores": 4, "enabled": false, "name": "host1", "active": [], "owner": {"name": "matt", "age": 42}},
   "Host": [
     {"name": "host1", "cores": 4, "enabled": false, "active": [], "owner": {"name": "matt", "age": 42}},
@@ -14,7 +17,7 @@
      "description": "this is a description of app1", "version": 1.2},
     {"name": "app2", "host": {"name": "host1", "cores": 4, "enabled": false, "active": [], "owner": {"name": "matt", "age": 42}}, "alias": "application2", "combo": "app2.host1",
      "description": "this is a description\nof app2", "version": 1.1},
-    {"name": "app3", "host": {"name": "host2", "cores": 8, "enabled": true, "active": [], "owner": {"name": "matt", "age": 42}},  "alias": null, "combo": "{name}.{host.name}",
+    {"name": "app-3", "host": {"name": "host2", "cores": 8, "enabled": true, "active": [], "owner": {"name": "matt", "age": 42}},  "alias": null, "combo": "{name}.{host.name}",
       "description": "this is a description of {name}", "version": 1.1}
   ]
 }

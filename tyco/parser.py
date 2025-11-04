@@ -73,10 +73,11 @@ def cached_property(func):
 
 class TycoLexer:
 
-    GLOBAL_SCHEMA_REGEX = r'([?])?(\w+)(\[\])?\s+(\w+)\s*:'
-    STRUCT_BLOCK_REGEX  = r'^([a-zA-Z_][a-zA-Z0-9_]*):'
-    STRUCT_SCHEMA_REGEX = r'^\s+([*?])?(\w+)(\[\])?\s+(\w+)\s*:'
-    STRUCT_DEFAULTS_REGEX = r'\s+(\w+)\s*:'
+    ire = r'((?!\d)\w+)'            # regex to match identifiers
+    GLOBAL_SCHEMA_REGEX = rf'([?])?{ire}(\[\])?\s+{ire}\s*:'
+    STRUCT_BLOCK_REGEX  = rf'^{ire}:'
+    STRUCT_SCHEMA_REGEX = rf'^\s+([*?])?{ire}(\[\])?\s+{ire}\s*:'
+    STRUCT_DEFAULTS_REGEX = r'\s+{ire}\s*:'
     STRUCT_INSTANCE_REGEX = r'\s+-'
 
     @classmethod
@@ -207,7 +208,7 @@ class TycoLexer:
                     self.defaults[struct.type_name].pop(attr_name, None)          # if empty remove previous defaults
             elif match := re.match(self.STRUCT_INSTANCE_REGEX, line):
                 debug(f'Parsing new instance for {struct}')
-                self.lines.appendleft(line.split('-')[1].lstrip())
+                self.lines.appendleft(line.split('-', maxsplit=1)[1].lstrip())
                 inst_args = []
                 while True:
                     if not self.lines:
@@ -226,10 +227,10 @@ class TycoLexer:
                 struct.create_instance(inst_args, self.defaults[struct.type_name])
 
     def _load_tyco_attr2(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True):
-        bad_delim = set(bad_delim) | set('()[],:') - set(good_delim)
+        bad_delim = set(bad_delim) | set('()[],') - set(good_delim)
         if not self.lines:
             raise Exception(f'Syntax error: no content found')
-        if match := re.match(r'(\w+)\s*:\s*', self.lines[0]):
+        if match := re.match(rf'{self.ire}\s*:\s*', self.lines[0]):     # need to exclude times w/ colons
             attr_name = match.groups()[0]
             self.lines[0] = self.lines[0][match.span()[1]:]
         else:
@@ -284,7 +285,7 @@ class TycoLexer:
         all_delim = list(good_delim) + list(bad_delim)
         delim_regex = '|'.join(re.escape(d) for d in all_delim)
         if not (match := re.search(delim_regex, all_content)):
-            raise Exception(f'Should have found some delimiter {all_delim}: {all_content!r}')
+            raise Exception(f'Should have found some delimiter {all_delim}: {self.lines[0]!r}')
         delim = match.group()
         if delim in bad_delim:
             raise Exception(f'Bad delim: {delim}')
@@ -301,6 +302,9 @@ class TycoLexer:
         while True:
             if not self.lines:
                 raise Exception(f'Could not find {closing_char}')
+            if not strip_comments(self.lines[0]):                       # can have newlines within the array
+                self.lines.popleft()
+                continue
             if self.lines[0].startswith(closing_char):                  # can happen with a trailing comma
                 self.lines[0] = self.lines[0][1:]
                 break
@@ -355,7 +359,7 @@ class TycoLexer:
         while True:
             end = line.find(ch, start)
             if end == -1:
-                raise Exception(f'Unclosed single-line string: {ch}')
+                raise Exception(f'Unclosed single-line string for {ch!r}: {line!r}')
             if is_literal or line[end-1] != '\\':       # this is an escaped quote
                 break
             start = end + 1

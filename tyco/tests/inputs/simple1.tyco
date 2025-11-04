@@ -1,6 +1,9 @@
 str project: demo
 Host host: Host(host1)
 str project_name: {project}.new
+date start_date: 2025-10-01
+time start_time: 12:01:01
+datetime start_dt: 2025-10-01 12:01:01Z
 
 # comment1
 
@@ -19,7 +22,7 @@ Application:        # inline comment1
     description: """
 this is a description
 of {name}"""
-  - app3, Host(host2), alias: null,           combo: '{name}.{host.name}',\   # this is a literal
+  - "app-3", Host(host2), alias: null,           combo: '{name}.{host.name}',\   # this is a literal
     description: '''this is a description of {name}'''
 
 Person:
@@ -36,6 +39,7 @@ Host:
   - host2, cores: 8, enabled: true
   - host3, cores: 0x10, owner: Person(ashley, 41)    #hex
   - host4, cores: 0b10, active:null                  #binary
-  - host5, active: [1,2,3], cores: 0o10              #octal
+  - host5, active: [1,2,
+  3], cores: 0o10              #octal
 
 
