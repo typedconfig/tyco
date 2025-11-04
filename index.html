@@ -22,7 +22,7 @@
       top: 0;
       background: #ffffff;
       border-bottom: 1px solid #e5e7eb;
-      padding: 0.625rem 2rem;
+      padding: 0.5rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -33,11 +33,21 @@
     .brand {
       display: flex;
       align-items: baseline;
-      gap: 0.5rem;
+      gap: 0;
       font-size: 1.75rem;
       font-weight: 700;
       color: #111827;
       text-decoration: none;
+    }
+
+    .brand-ty,
+    .brand-co {
+      color: #1e6fff;
+    }
+
+    .brand-ped,
+    .brand-nfig {
+      color: #111827;
     }
 
     .brand-tag {
@@ -309,8 +319,7 @@
 <body>
   <header class="banner">
     <a href="/" class="brand">
-      Tyco
-      <span class="brand-tag">typed configuration</span>
+      <span class="brand-ty">Ty</span><span class="brand-ped">ped</span> <span class="brand-co">Co</span><span class="brand-nfig">nfig</span>
     </a>
     
     <nav class="nav-actions">
