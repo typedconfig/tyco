@@ -1,53 +1,356 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tyco — Typed Configuration</title>
-  <link rel="stylesheet" href="typedconfig.io/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .banner {
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.625rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      text-decoration: none;
+    }
+
+    .brand-tag {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e6fff;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .spec-selector {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #374151;
+      font-size: 0.875rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .spec-selector:hover {
+      border-color: #1e6fff;
+    }
+
+    .spec-selector:focus {
+      border-color: #1e6fff;
+      box-shadow: 0 0 0 3px rgba(30, 111, 255, 0.1);
+    }
+
+    .gh-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #111827;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .gh-link:hover {
+      background: #1f2937;
+    }
+
+    .gh-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    main {
+      max-width: 100%;
+      margin: 0;
+      padding: 1rem 1.5rem;
+    }
+
+    .comparison-section {
+      margin-top: 0;
+    }
+
+    .preamble {
+      margin-bottom: 1.5rem;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    .preamble h2 {
+      margin: 0 0 0.75rem 0;
+      color: #111827;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .preamble p {
+      margin: 0 0 0.75rem 0;
+      color: #4b5563;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .preamble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .comparison-section h2 {
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+
+    .comparison-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .compare-btn {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .compare-btn:hover {
+      border-color: #1e6fff;
+      color: #1e6fff;
+    }
+
+    .compare-btn.active {
+      background: #1e6fff;
+      color: #ffffff;
+      border-color: #1e6fff;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .code-panel {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 660px;
+    }
+
+    .code-panel.hidden {
+      display: none;
+    }
+
+    .code-header {
+      background: #f9fafb;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+
+    .code-block {
+      background: #0f1419;
+      color: #e5e7eb;
+      padding: 1.25rem;
+      margin: 0;
+      overflow-x: auto;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .code-block code {
+      display: block;
+    }
+
+    /* Tyco syntax highlighting */
+    .tok-type { color: #fbffba; }
+    .tok-key { color: #73b2ff; font-weight: 600; }
+    .tok-string { color: #7ad98a; }
+    .tok-comment { color: #6b8aa2; font-style: italic; }
+    .tok-obj { color: #fbffba; }
+    .tok-boolean { color: #d58bff; }
+    .tok-number { color: #ffb86b; }
+
+    /* JSON syntax highlighting */
+    .json-key { color: #73b2ff; }
+    .json-string { color: #7ad98a; }
+    .json-number { color: #ffb86b; }
+    .json-boolean { color: #d58bff; }
+
+    /* YAML syntax highlighting */
+    .yaml-key { color: #73b2ff; font-weight: 600; }
+    .yaml-string { color: #7ad98a; }
+    .yaml-number { color: #ffb86b; }
+    .yaml-boolean { color: #d58bff; }
+    .yaml-comment { color: #6b8aa2; font-style: italic; }
+
+    /* XML syntax highlighting */
+    .xml-tag { color: #73b2ff; }
+    .xml-text { color: #e5e7eb; }
+
+    /* TOML syntax highlighting */
+    .toml-section { color: #d58bff; font-weight: 600; }
+    .toml-key { color: #73b2ff; }
+    .toml-string { color: #7ad98a; }
+    .toml-number { color: #ffb86b; }
+    .toml-boolean { color: #d58bff; }
+    .toml-comment { color: #6b8aa2; font-style: italic; }
+
+    /* CSV syntax highlighting */
+    .csv-comment { color: #6b8aa2; font-style: italic; }
+    .csv-header { color: #73b2ff; font-weight: 600; }
+    .csv-value { color: #e5e7eb; }
+
+    /* CUE syntax highlighting */
+    .cue-key { color: #73b2ff; }
+    .cue-string { color: #7ad98a; }
+    .cue-number { color: #ffb86b; }
+    .cue-boolean { color: #d58bff; }
+    .cue-type { color: #fbffba; }
+    .cue-comment { color: #6b8aa2; font-style: italic; }
+
+    .comparison-points {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .comparison-points h3 {
+      margin: 0 0 1rem 0;
+      color: #111827;
+      font-size: 1.25rem;
+    }
+
+    .comparison-points ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      list-style-type: disc;
+    }
+
+    .comparison-points li {
+      margin-bottom: 0.5rem;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .comparison-points li:last-child {
+      margin-bottom: 0;
+    }
+
+    .comparison-points code {
+      background: #e5e7eb;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.875em;
+      color: #1e6fff;
+    }
+
+    @media (max-width: 968px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="banner">
-    <div class="banner-inner container">
-      <div>
-  <h1 class="brand"><a class="brand-link" href="index.html">Tyco <small class="tag">typed configuration</small></a></h1>
-      </div>
-      <div class="nav-actions">
-        <div class="versions">
-          <select id="spec-version" aria-label="Spec Version">
-            <option value="" disabled selected>Full Spec</option>
-            <option value="0.1.1">v0.1.1</option>
-            <option value="0.1.0">v0.1.0</option>
-          </select>
-        </div>
-        <a class="gh-btn" href="https://github.com/typedconfig" target="_blank" rel="noopener" aria-label="View on GitHub">
-          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
-            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
-          </svg>
-        </a>
-      </div>
-    </div>
+    <a href="/" class="brand">
+      Tyco
+      <span class="brand-tag">typed configuration</span>
+    </a>
+    
+    <nav class="nav-actions">
+      <select class="spec-selector" id="spec-version" aria-label="Spec Version">
+        <option value="">Spec</option>
+        <option value="0.1.1">v0.1.1</option>
+        <option value="0.1.0">v0.1.0</option>
+      </select>
+      
+      <a href="https://github.com/typedconfig/tyco" class="gh-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+        <svg class="gh-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+    </nav>
   </header>
 
-  <main class="container">
-    <section id="overview" class="card">
-      <div class="hero">
-        <div>
-          <h3 class="hero-overview">Overview:</h3>
-          <p class="hero-preamble">Tyco is a text-based configuration format which describes statically-typed tabular data. It aims to provide a low cognitive overhead for engineers through simplicity and de-duplication. <strong>Think of it as typed csv with globals, optional keys, and default values, rendered as something that looks like simplified yaml.</strong></p>
-          <p class="hero-preamble">It's probably not for everyone. If you enjoy type-inference in your config attributes (and surprises at runtime) or ugly nested layouts, then you might want to stick with something else. But if you hardly sleep, and night after night you sit by your computer, looking for yet another markdown language, then Tyco may be worth a shot. And if you've come this far, maybe you're willing to come a little further (<a href="typedconfig.io/start-coding.html">try it out!</a>).</p>
-          <h3 class="hero-offers">What Tyco offers:</h3>
-          <ul class="hero-summary">
-            <li><strong>Explicitly-typed</strong> configuration for attribute type guarantees.</li>
-            <li>Just enough <strong>flexibility</strong> to match the shape of the data.</li>
-            <li>Supports references to other objects for <strong>internal consistency</strong>.</li>
-            <li>Can set <strong>defaults</strong> in multiple places to keep things <strong>DRY</strong>.</li>
-            <li><strong>Clean</strong> syntax for engineers who care about aesthetics.</li>
-          </ul>
-        </div>
+  <main>
+    <section class="preamble">
+      <h2>A better way to configure your applications</h2>
+      <p>Tyco is a typed configuration format designed for engineers who care about clarity, correctness, and maintainability. If you've ever struggled with YAML's type inference surprises, JSON's lack of comments, or XML's verbosity, Tyco offers a fresh alternative.</p>
+      <p>At its core, Tyco combines the best ideas from tabular data (like CSV) with the structure of configuration languages (like TOML and YAML), while adding explicit type safety. You define your schema inline, set defaults to stay DRY, and reference related objects naturally—all in a syntax that's easy to read and write.</p>
+      <p>Tyco is purpose-built for configuration files where you need type guarantees, relational data, and human readability. If you're managing structured config across environments, services, or deployments, Tyco might be exactly what you're looking for.</p>
+    </section>
 
-        <aside class="code-hero" aria-hidden="false">
-          <pre><code><span class="tok-type">str</span> <span class="tok-key">timezone</span>: <span class="tok-string">UTC</span>     <span class="tok-comment"># this is a global config setting</span>
+    <section class="comparison-section">
+      <div class="comparison-buttons">
+        <button class="compare-btn active" data-format="json">JSON</button>
+        <button class="compare-btn" data-format="yaml">YAML</button>
+        <button class="compare-btn" data-format="xml">XML</button>
+        <button class="compare-btn" data-format="toml">TOML</button>
+        <button class="compare-btn" data-format="csv">CSV</button>
+        <button class="compare-btn" data-format="cue">CUE</button>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- Tyco (left side - always visible) -->
+        <div class="code-panel">
+          <div class="code-header">Tyco</div>
+          <pre class="code-block tyco"><code><span class="tok-type">str</span> <span class="tok-key">timezone</span>: <span class="tok-string">UTC</span>     <span class="tok-comment"># this is a global config setting</span>
 
 <span class="tok-key">Application</span>:
   <span class="tok-type">str</span> <span class="tok-key">service</span>:
@@ -71,113 +374,413 @@
  *<span class="tok-type">str</span> <span class="tok-key">name</span>:
   <span class="tok-type">int</span> <span class="tok-key">number</span>:
   - <span class="tok-string">http_web</span>,   <span class="tok-number">80</span>
-  - <span class="tok-string">http_mysql</span>, <span class="tok-number">3306</span>
-</code></pre>
-        </aside>
+  - <span class="tok-string">http_mysql</span>, <span class="tok-number">3306</span></code></pre>
+        </div>
+
+        <!-- JSON (right side) -->
+        <div class="code-panel" id="json-panel">
+          <div class="code-header">JSON</div>
+          <pre class="code-block json"><code>{
+  <span class="json-key">"timezone"</span>: <span class="json-string">"UTC"</span>,
+  <span class="json-key">"Application"</span>: [
+    {
+      <span class="json-key">"service"</span>: <span class="json-string">"webserver"</span>,
+      <span class="json-key">"profile"</span>: <span class="json-string">"primary"</span>,
+      <span class="json-key">"command"</span>: <span class="json-string">"start_app webserver.primary -p 80"</span>,
+      <span class="json-key">"host"</span>: <span class="json-string">"prod-01-us"</span>,
+      <span class="json-key">"port"</span>: <span class="json-string">"http_web"</span>
+    },
+    {
+      <span class="json-key">"service"</span>: <span class="json-string">"webserver"</span>,
+      <span class="json-key">"profile"</span>: <span class="json-string">"backup"</span>,
+      <span class="json-key">"command"</span>: <span class="json-string">"start_app webserver.backup -p 80"</span>,
+      <span class="json-key">"host"</span>: <span class="json-string">"prod-02-us"</span>,
+      <span class="json-key">"port"</span>: <span class="json-string">"http_web"</span>
+    },
+    {
+      <span class="json-key">"service"</span>: <span class="json-string">"database"</span>,
+      <span class="json-key">"profile"</span>: <span class="json-string">"mysql"</span>,
+      <span class="json-key">"command"</span>: <span class="json-string">"start_app database.mysql -p 3306"</span>,
+      <span class="json-key">"host"</span>: <span class="json-string">"prod-02-us"</span>,
+      <span class="json-key">"port"</span>: <span class="json-string">"http_mysql"</span>
+    }
+  ],
+  <span class="json-key">"Host"</span>: [
+    {
+      <span class="json-key">"hostname"</span>: <span class="json-string">"prod-01-us"</span>,
+      <span class="json-key">"cores"</span>: <span class="json-number">64</span>,
+      <span class="json-key">"hyperthreaded"</span>: <span class="json-boolean">false</span>,
+      <span class="json-key">"os"</span>: <span class="json-string">"Debian"</span>
+    },
+    {
+      <span class="json-key">"hostname"</span>: <span class="json-string">"prod-02-us"</span>,
+      <span class="json-key">"cores"</span>: <span class="json-number">32</span>,
+      <span class="json-key">"hyperthreaded"</span>: <span class="json-boolean">true</span>,
+      <span class="json-key">"os"</span>: <span class="json-string">"Fedora"</span>
+    }
+  ],
+  <span class="json-key">"Port"</span>: [
+    {
+      <span class="json-key">"name"</span>: <span class="json-string">"http_web"</span>,
+      <span class="json-key">"number"</span>: <span class="json-number">80</span>
+    },
+    {
+      <span class="json-key">"name"</span>: <span class="json-string">"http_mysql"</span>,
+      <span class="json-key">"number"</span>: <span class="json-number">3306</span>
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <!-- YAML (right side, hidden by default) -->
+        <div class="code-panel hidden" id="yaml-panel">
+          <div class="code-header">YAML</div>
+          <pre class="code-block yaml"><code><span class="yaml-key">timezone</span>: <span class="yaml-string">UTC</span>  <span class="yaml-comment"># this is a global config setting</span>
+
+<span class="yaml-key">Application</span>:
+  - <span class="yaml-key">service</span>: <span class="yaml-string">webserver</span>
+    <span class="yaml-key">profile</span>: <span class="yaml-string">primary</span>
+    <span class="yaml-key">command</span>: <span class="yaml-string">start_app webserver.primary -p 80</span>
+    <span class="yaml-key">host</span>: <span class="yaml-string">prod-01-us</span>
+    <span class="yaml-key">port</span>: <span class="yaml-string">http_web</span>
+  - <span class="yaml-key">service</span>: <span class="yaml-string">webserver</span>
+    <span class="yaml-key">profile</span>: <span class="yaml-string">backup</span>
+    <span class="yaml-key">command</span>: <span class="yaml-string">start_app webserver.backup -p 80</span>
+    <span class="yaml-key">host</span>: <span class="yaml-string">prod-02-us</span>
+    <span class="yaml-key">port</span>: <span class="yaml-string">http_web</span>
+  - <span class="yaml-key">service</span>: <span class="yaml-string">database</span>
+    <span class="yaml-key">profile</span>: <span class="yaml-string">mysql</span>
+    <span class="yaml-key">command</span>: <span class="yaml-string">start_app database.mysql -p 3306</span>
+    <span class="yaml-key">host</span>: <span class="yaml-string">prod-02-us</span>
+    <span class="yaml-key">port</span>: <span class="yaml-string">http_mysql</span>
+
+<span class="yaml-key">Host</span>:
+  - <span class="yaml-key">hostname</span>: <span class="yaml-string">prod-01-us</span>  <span class="yaml-comment"># primary key for lookups</span>
+    <span class="yaml-key">cores</span>: <span class="yaml-number">64</span>
+    <span class="yaml-key">hyperthreaded</span>: <span class="yaml-boolean">false</span>
+    <span class="yaml-key">os</span>: <span class="yaml-string">Debian</span>
+  - <span class="yaml-key">hostname</span>: <span class="yaml-string">prod-02-us</span>
+    <span class="yaml-key">cores</span>: <span class="yaml-number">32</span>
+    <span class="yaml-key">hyperthreaded</span>: <span class="yaml-boolean">true</span>
+    <span class="yaml-key">os</span>: <span class="yaml-string">Fedora</span>
+
+<span class="yaml-key">Port</span>:
+  - <span class="yaml-key">name</span>: <span class="yaml-string">http_web</span>
+    <span class="yaml-key">number</span>: <span class="yaml-number">80</span>
+  - <span class="yaml-key">name</span>: <span class="yaml-string">http_mysql</span>
+    <span class="yaml-key">number</span>: <span class="yaml-number">3306</span></code></pre>
+        </div>
+
+        <!-- XML (right side, hidden by default) -->
+        <div class="code-panel hidden" id="xml-panel">
+          <div class="code-header">XML</div>
+          <pre class="code-block xml"><code><span class="xml-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="xml-tag">&lt;config&gt;</span>
+  <span class="xml-tag">&lt;timezone&gt;</span><span class="xml-text">UTC</span><span class="xml-tag">&lt;/timezone&gt;</span>
+  
+  <span class="xml-tag">&lt;applications&gt;</span>
+    <span class="xml-tag">&lt;application&gt;</span>
+      <span class="xml-tag">&lt;service&gt;</span><span class="xml-text">webserver</span><span class="xml-tag">&lt;/service&gt;</span>
+      <span class="xml-tag">&lt;profile&gt;</span><span class="xml-text">primary</span><span class="xml-tag">&lt;/profile&gt;</span>
+      <span class="xml-tag">&lt;command&gt;</span><span class="xml-text">start_app webserver.primary -p 80</span><span class="xml-tag">&lt;/command&gt;</span>
+      <span class="xml-tag">&lt;host&gt;</span><span class="xml-text">prod-01-us</span><span class="xml-tag">&lt;/host&gt;</span>
+      <span class="xml-tag">&lt;port&gt;</span><span class="xml-text">http_web</span><span class="xml-tag">&lt;/port&gt;</span>
+    <span class="xml-tag">&lt;/application&gt;</span>
+    <span class="xml-tag">&lt;application&gt;</span>
+      <span class="xml-tag">&lt;service&gt;</span><span class="xml-text">webserver</span><span class="xml-tag">&lt;/service&gt;</span>
+      <span class="xml-tag">&lt;profile&gt;</span><span class="xml-text">backup</span><span class="xml-tag">&lt;/profile&gt;</span>
+      <span class="xml-tag">&lt;command&gt;</span><span class="xml-text">start_app webserver.backup -p 80</span><span class="xml-tag">&lt;/command&gt;</span>
+      <span class="xml-tag">&lt;host&gt;</span><span class="xml-text">prod-02-us</span><span class="xml-tag">&lt;/host&gt;</span>
+      <span class="xml-tag">&lt;port&gt;</span><span class="xml-text">http_web</span><span class="xml-tag">&lt;/port&gt;</span>
+    <span class="xml-tag">&lt;/application&gt;</span>
+    <span class="xml-tag">&lt;application&gt;</span>
+      <span class="xml-tag">&lt;service&gt;</span><span class="xml-text">database</span><span class="xml-tag">&lt;/service&gt;</span>
+      <span class="xml-tag">&lt;profile&gt;</span><span class="xml-text">mysql</span><span class="xml-tag">&lt;/profile&gt;</span>
+      <span class="xml-tag">&lt;command&gt;</span><span class="xml-text">start_app database.mysql -p 3306</span><span class="xml-tag">&lt;/command&gt;</span>
+      <span class="xml-tag">&lt;host&gt;</span><span class="xml-text">prod-02-us</span><span class="xml-tag">&lt;/host&gt;</span>
+      <span class="xml-tag">&lt;port&gt;</span><span class="xml-text">http_mysql</span><span class="xml-tag">&lt;/port&gt;</span>
+    <span class="xml-tag">&lt;/application&gt;</span>
+  <span class="xml-tag">&lt;/applications&gt;</span>
+
+  <span class="xml-tag">&lt;hosts&gt;</span>
+    <span class="xml-tag">&lt;host&gt;</span>
+      <span class="xml-tag">&lt;hostname&gt;</span><span class="xml-text">prod-01-us</span><span class="xml-tag">&lt;/hostname&gt;</span>
+      <span class="xml-tag">&lt;cores&gt;</span><span class="xml-text">64</span><span class="xml-tag">&lt;/cores&gt;</span>
+      <span class="xml-tag">&lt;hyperthreaded&gt;</span><span class="xml-text">false</span><span class="xml-tag">&lt;/hyperthreaded&gt;</span>
+      <span class="xml-tag">&lt;os&gt;</span><span class="xml-text">Debian</span><span class="xml-tag">&lt;/os&gt;</span>
+    <span class="xml-tag">&lt;/host&gt;</span>
+    <span class="xml-tag">&lt;host&gt;</span>
+      <span class="xml-tag">&lt;hostname&gt;</span><span class="xml-text">prod-02-us</span><span class="xml-tag">&lt;/hostname&gt;</span>
+      <span class="xml-tag">&lt;cores&gt;</span><span class="xml-text">32</span><span class="xml-tag">&lt;/cores&gt;</span>
+      <span class="xml-tag">&lt;hyperthreaded&gt;</span><span class="xml-text">true</span><span class="xml-tag">&lt;/hyperthreaded&gt;</span>
+      <span class="xml-tag">&lt;os&gt;</span><span class="xml-text">Fedora</span><span class="xml-tag">&lt;/os&gt;</span>
+    <span class="xml-tag">&lt;/host&gt;</span>
+  <span class="xml-tag">&lt;/hosts&gt;</span>
+
+  <span class="xml-tag">&lt;ports&gt;</span>
+    <span class="xml-tag">&lt;port&gt;</span>
+      <span class="xml-tag">&lt;name&gt;</span><span class="xml-text">http_web</span><span class="xml-tag">&lt;/name&gt;</span>
+      <span class="xml-tag">&lt;number&gt;</span><span class="xml-text">80</span><span class="xml-tag">&lt;/number&gt;</span>
+    <span class="xml-tag">&lt;/port&gt;</span>
+    <span class="xml-tag">&lt;port&gt;</span>
+      <span class="xml-tag">&lt;name&gt;</span><span class="xml-text">http_mysql</span><span class="xml-tag">&lt;/name&gt;</span>
+      <span class="xml-tag">&lt;number&gt;</span><span class="xml-text">3306</span><span class="xml-tag">&lt;/number&gt;</span>
+    <span class="xml-tag">&lt;/port&gt;</span>
+  <span class="xml-tag">&lt;/ports&gt;</span>
+<span class="xml-tag">&lt;/config&gt;</span></code></pre>
+        </div>
+
+        <!-- TOML (right side, hidden by default) -->
+        <div class="code-panel hidden" id="toml-panel">
+          <div class="code-header">TOML</div>
+          <pre class="code-block toml"><code><span class="toml-key">timezone</span> = <span class="toml-string">"UTC"</span>  <span class="toml-comment"># this is a global config setting</span>
+
+<span class="toml-section">[[Application]]</span>
+<span class="toml-key">service</span> = <span class="toml-string">"webserver"</span>
+<span class="toml-key">profile</span> = <span class="toml-string">"primary"</span>
+<span class="toml-key">command</span> = <span class="toml-string">"start_app webserver.primary -p 80"</span>
+<span class="toml-key">host</span> = <span class="toml-string">"prod-01-us"</span>
+<span class="toml-key">port</span> = <span class="toml-string">"http_web"</span>
+
+<span class="toml-section">[[Application]]</span>
+<span class="toml-key">service</span> = <span class="toml-string">"webserver"</span>
+<span class="toml-key">profile</span> = <span class="toml-string">"backup"</span>
+<span class="toml-key">command</span> = <span class="toml-string">"start_app webserver.backup -p 80"</span>
+<span class="toml-key">host</span> = <span class="toml-string">"prod-02-us"</span>
+<span class="toml-key">port</span> = <span class="toml-string">"http_web"</span>
+
+<span class="toml-section">[[Application]]</span>
+<span class="toml-key">service</span> = <span class="toml-string">"database"</span>
+<span class="toml-key">profile</span> = <span class="toml-string">"mysql"</span>
+<span class="toml-key">command</span> = <span class="toml-string">"start_app database.mysql -p 3306"</span>
+<span class="toml-key">host</span> = <span class="toml-string">"prod-02-us"</span>
+<span class="toml-key">port</span> = <span class="toml-string">"http_mysql"</span>
+
+<span class="toml-section">[[Host]]</span>
+<span class="toml-key">hostname</span> = <span class="toml-string">"prod-01-us"</span>  <span class="toml-comment"># primary key for lookups</span>
+<span class="toml-key">cores</span> = <span class="toml-number">64</span>
+<span class="toml-key">hyperthreaded</span> = <span class="toml-boolean">false</span>
+<span class="toml-key">os</span> = <span class="toml-string">"Debian"</span>
+
+<span class="toml-section">[[Host]]</span>
+<span class="toml-key">hostname</span> = <span class="toml-string">"prod-02-us"</span>
+<span class="toml-key">cores</span> = <span class="toml-number">32</span>
+<span class="toml-key">hyperthreaded</span> = <span class="toml-boolean">true</span>
+<span class="toml-key">os</span> = <span class="toml-string">"Fedora"</span>
+
+<span class="toml-section">[[Port]]</span>
+<span class="toml-key">name</span> = <span class="toml-string">"http_web"</span>
+<span class="toml-key">number</span> = <span class="toml-number">80</span>
+
+<span class="toml-section">[[Port]]</span>
+<span class="toml-key">name</span> = <span class="toml-string">"http_mysql"</span>
+<span class="toml-key">number</span> = <span class="toml-number">3306</span></code></pre>
+        </div>
+
+        <!-- CSV (right side, hidden by default) -->
+        <div class="code-panel hidden" id="csv-panel">
+          <div class="code-header">CSV</div>
+          <pre class="code-block csv"><code><span class="csv-comment"># Global config</span>
+<span class="csv-header">timezone</span>
+<span class="csv-value">UTC</span>
+
+<span class="csv-comment"># Application table</span>
+<span class="csv-header">service,profile,command,host,port</span>
+<span class="csv-value">webserver,primary,"start_app webserver.primary -p 80",prod-01-us,http_web</span>
+<span class="csv-value">webserver,backup,"start_app webserver.backup -p 80",prod-02-us,http_web</span>
+<span class="csv-value">database,mysql,"start_app database.mysql -p 3306",prod-02-us,http_mysql</span>
+
+<span class="csv-comment"># Host table (hostname is primary key)</span>
+<span class="csv-header">hostname,cores,hyperthreaded,os</span>
+<span class="csv-value">prod-01-us,64,false,Debian</span>
+<span class="csv-value">prod-02-us,32,true,Fedora</span>
+
+<span class="csv-comment"># Port table (name is primary key)</span>
+<span class="csv-header">name,number</span>
+<span class="csv-value">http_web,80</span>
+<span class="csv-value">http_mysql,3306</span></code></pre>
+        </div>
+
+        <!-- CUE (right side, hidden by default) -->
+        <div class="code-panel hidden" id="cue-panel">
+          <div class="code-header">CUE</div>
+          <pre class="code-block cue"><code><span class="cue-key">timezone</span>: <span class="cue-string">"UTC"</span>  <span class="cue-comment">// this is a global config setting</span>
+
+<span class="cue-key">Application</span>: [
+  {
+    <span class="cue-key">service</span>:  <span class="cue-type">string</span>
+    <span class="cue-key">profile</span>:  <span class="cue-type">string</span>
+    <span class="cue-key">command</span>:  <span class="cue-type">string</span>
+    <span class="cue-key">host</span>:     <span class="cue-type">string</span>
+    <span class="cue-key">port</span>:     <span class="cue-type">string</span>
+  },
+  {
+    <span class="cue-key">service</span>: <span class="cue-string">"webserver"</span>
+    <span class="cue-key">profile</span>: <span class="cue-string">"primary"</span>
+    <span class="cue-key">command</span>: <span class="cue-string">"start_app webserver.primary -p 80"</span>
+    <span class="cue-key">host</span>:    <span class="cue-string">"prod-01-us"</span>
+    <span class="cue-key">port</span>:    <span class="cue-string">"http_web"</span>
+  },
+  {
+    <span class="cue-key">service</span>: <span class="cue-string">"webserver"</span>
+    <span class="cue-key">profile</span>: <span class="cue-string">"backup"</span>
+    <span class="cue-key">command</span>: <span class="cue-string">"start_app webserver.backup -p 80"</span>
+    <span class="cue-key">host</span>:    <span class="cue-string">"prod-02-us"</span>
+    <span class="cue-key">port</span>:    <span class="cue-string">"http_web"</span>
+  },
+  {
+    <span class="cue-key">service</span>: <span class="cue-string">"database"</span>
+    <span class="cue-key">profile</span>: <span class="cue-string">"mysql"</span>
+    <span class="cue-key">command</span>: <span class="cue-string">"start_app database.mysql -p 3306"</span>
+    <span class="cue-key">host</span>:    <span class="cue-string">"prod-02-us"</span>
+    <span class="cue-key">port</span>:    <span class="cue-string">"http_mysql"</span>
+  },
+]
+
+<span class="cue-key">Host</span>: [
+  {
+    <span class="cue-key">hostname</span>:      <span class="cue-type">string</span>  <span class="cue-comment">// primary key for lookups</span>
+    <span class="cue-key">cores</span>:         <span class="cue-type">int</span>
+    <span class="cue-key">hyperthreaded</span>: <span class="cue-type">bool</span> | *<span class="cue-boolean">true</span>
+    <span class="cue-key">os</span>:            <span class="cue-type">string</span> | *<span class="cue-string">"Debian"</span>
+  },
+  {
+    <span class="cue-key">hostname</span>:      <span class="cue-string">"prod-01-us"</span>
+    <span class="cue-key">cores</span>:         <span class="cue-number">64</span>
+    <span class="cue-key">hyperthreaded</span>: <span class="cue-boolean">false</span>
+  },
+  {
+    <span class="cue-key">hostname</span>: <span class="cue-string">"prod-02-us"</span>
+    <span class="cue-key">cores</span>:    <span class="cue-number">32</span>
+    <span class="cue-key">os</span>:       <span class="cue-string">"Fedora"</span>
+  },
+]
+
+<span class="cue-key">Port</span>: [
+  {
+    <span class="cue-key">name</span>:   <span class="cue-type">string</span>  <span class="cue-comment">// primary key</span>
+    <span class="cue-key">number</span>: <span class="cue-type">int</span>
+  },
+  {
+    <span class="cue-key">name</span>:   <span class="cue-string">"http_web"</span>
+    <span class="cue-key">number</span>: <span class="cue-number">80</span>
+  },
+  {
+    <span class="cue-key">name</span>:   <span class="cue-string">"http_mysql"</span>
+    <span class="cue-key">number</span>: <span class="cue-number">3306</span>
+  },
+]</code></pre>
+        </div>
+      </div>
+
+      <div class="comparison-points" id="comparison-points">
+        <h3 id="comparison-title">Tyco vs JSON</h3>
+        <ul id="points-list">
+          <!-- JSON comparison (default) -->
+          <li><strong>Readable schema definition:</strong> Tyco defines types inline with the data, while JSON requires external schema files or lacks type safety entirely.</li>
+          <li><strong>No redundancy:</strong> Tyco uses defaults and templates to avoid repeating values. JSON forces you to specify every field for every object.</li>
+          <li><strong>Comments supported:</strong> Tyco has native comment support. JSON doesn't allow comments, making documentation impossible.</li>
+          <li><strong>Cleaner syntax:</strong> Tyco eliminates unnecessary braces, brackets, and quotes where they add no value.</li>
+          <li><strong>Object references:</strong> Tyco allows referencing other objects by primary key (e.g., <code>Host(prod-01-us)</code>). JSON requires storing raw strings or duplicating data.</li>
+        </ul>
       </div>
     </section>
-
-    <section id="features" class="card">
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-header">
-            <div class="feature-icon" aria-hidden="true">
-              <!-- Large happy face icon (simple, clear) -->
-              <svg viewBox="0 0 24 24" fill="none" stroke='Must be a {struct} object'"currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <!-- face circle -->
-                <circle cx="12" cy="12" r="9" />
-                <!-- eyes (solid dots for expression) -->
-                <circle cx="9" cy="10" r="1.2" fill="currentColor" stroke="none" />
-                <circle cx="15" cy="10" r="1.2" fill="currentColor" stroke="none" />
-                <!-- centered symmetric smile (quadratic Bezier) -->
-                <path d="M7 14.8 Q12 18 17 14.8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" />
-              </svg>
-            </div>
-            <h3>Tyco prioritizes readability</h3>
-          </div>
-          <p class="muted">Tyco's syntax is designed for humans to read, write, and review. It emphasizes clarity and simplicity, making config data easy to understand at a glance.</p>
-          <ul class="feature-bullets">
-            <li>Inline schema defined once, used everywhere.</li>
-            <li>No functions, just objects.</li>
-            <li>Comments and #include files are supported.</li>
-            <li>Keyed access to structured data.</li>
-            <li>Light-weight {templating} to avoid repetition.</li>
-            <li>Combines the best of toml, yaml, json, python and others.</li>
-          </ul>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header">
-            <div class="feature-icon" aria-hidden="true">
-              <!-- Larger 'int' text icon -->
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <text x="12" y="15.5" text-anchor="middle" dominant-baseline="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial" font-size="18" font-weight="800" fill="currentColor">int</text>
-              </svg>
-            </div>
-            <h3>Tyco has explicit types</h3>
-          </div>
-          <p class="muted">Tyco includes first-class, well-defined primitives so applications can rely on consistent values at runtime. <a href="https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-from-hell" target="_blank" rel="noopener">Footguns kept to a minimum.</a></p>
-          <ul class="feature-bullets">
-            <li>Base types: str, int, bool, float, decimal, date+time.</li>
-            <li>Custom structs: composed of base types (or other structs).</li>
-            <li>Can reference other objects based on the primary key (*).</li>
-            <li>Optional: flags indicating array or nullable.</li>
-            <li>Global scope config variables supported.</li>
-          </ul>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-header">
-            <div class="feature-icon" aria-hidden="true">
-              <!-- Globe icon with longitudinal meridian lines -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <circle cx="12" cy="12" r="9" />
-                <!-- equator -->
-                <path d="M3 12h18" />
-                <!-- three meridians: originate at single top point (12,3), curve outward, and join at bottom (12,21) -->
-                <path d="M12 3 C9 8, 9 16, 12 21" />
-                <path d="M12 3 C12 8, 12 16, 12 21" />
-                <path d="M12 3 C15 8, 15 16, 12 21" />
-              </svg>
-            </div>
-            <h3>Tyco is easy to adopt</h3>
-          </div>
-          <p class="muted">Tyco has tooling to help migrate an existing configuration.</p>
-          <ul class="feature-bullets">
-            <li>Can both load/dump from several well-known serialization formats.</li>
-            <li>Subclassing structs in python for additional validators.</li>
-            <li>Syntax highlighting available in editors and a CLI application.</li>
-            <li>Parsers are being developed in all major languages.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    
-
-    
-    <!-- Quick Tour removed as requested -->
   </main>
-    <!-- CTA: Full Spec / Start Coding -->
-    <section class="card">
-      <div class="container cta-grid">
-        <div class="cta-card">
-          <h3><a href="spec/0.1.1.html" target="_blank" rel="noopener">Read the Spec</a></h3>
-          <p>For people who like to start with thorough research, review docs, and map out a structured plan to avoid pitfalls.</p>
-        </div>
 
-        <div class="cta-card">
-          <h3><a href="typedconfig.io/start-coding.html" target="_blank" rel="noopener">Start Coding</a></h3>
-          <p>For people who dive right in, learn through trial and error, and iterate based on hands-on experience.</p>
-        </div>
-      </div>
-    </section>
+  <script>
+    // Handle spec version selection
+    document.getElementById('spec-version').addEventListener('change', function(e) {
+      const version = e.target.value;
+      if (version) {
+        window.location.href = `typedconfig.io/spec/${version}.html`;
+      }
+    });
 
-  <footer class="site-footer">
-    <div class="container">
-  <p>Copyright <span id="copyright-year"></span> · Released under the <a href="https://github.com/typedconfig/tyco/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.</p>
-    </div>
-  </footer>
-  <script src="typedconfig.io/script.js"></script>
+    // Handle comparison format toggle
+    const compareButtons = document.querySelectorAll('.compare-btn');
+    const panels = {
+      json: document.getElementById('json-panel'),
+      yaml: document.getElementById('yaml-panel'),
+      xml: document.getElementById('xml-panel'),
+      toml: document.getElementById('toml-panel'),
+      csv: document.getElementById('csv-panel'),
+      cue: document.getElementById('cue-panel')
+    };
+
+    const comparisonPoints = {
+      json: [
+        '<strong>Readable schema definition:</strong> Tyco defines types inline with the data, while JSON requires external schema files or lacks type safety entirely.',
+        '<strong>No redundancy:</strong> Tyco uses defaults and templates to avoid repeating values. JSON forces you to specify every field for every object.',
+        '<strong>Comments supported:</strong> Tyco has native comment support. JSON doesn\'t allow comments, making documentation impossible.',
+        '<strong>Cleaner syntax:</strong> Tyco eliminates unnecessary braces, brackets, and quotes where they add no value.',
+        '<strong>Object references:</strong> Tyco allows referencing other objects by primary key (e.g., <code>Host(prod-01-us)</code>). JSON requires storing raw strings or duplicating data.'
+      ],
+      yaml: [
+        '<strong>Explicit types:</strong> Tyco requires type declarations upfront. YAML relies on type inference which leads to runtime surprises (e.g., <code>NO</code> becomes <code>false</code>).',
+        '<strong>Structured tabular data:</strong> Tyco is designed for tabular configuration. YAML uses nested lists which obscure the columnar structure.',
+        '<strong>Object references:</strong> Tyco has built-in reference syntax (<code>Host(prod-01-us)</code>). YAML requires anchors/aliases which are verbose and limited.',
+        '<strong>Primary keys:</strong> Tyco supports primary keys (*) for lookups. YAML treats everything as unstructured data.',
+        '<strong>No footguns:</strong> Tyco avoids YAML\'s infamous type coercion issues (Norway problem, version numbers as floats, etc.).'
+      ],
+      xml: [
+        '<strong>Concise syntax:</strong> Tyco uses minimal syntax. XML requires opening and closing tags for everything, creating massive verbosity.',
+        '<strong>Human-readable:</strong> Tyco is designed for engineers to read and write. XML is optimized for machines, not humans.',
+        '<strong>No ceremony:</strong> Tyco gets straight to the data. XML requires XML declarations, namespaces, and excessive nesting.',
+        '<strong>Clear structure:</strong> Tyco\'s tabular format makes relationships obvious. XML\'s deep nesting obscures the data model.',
+        '<strong>Modern design:</strong> Tyco is built for configuration. XML was designed for document markup and shows its age.'
+      ],
+      toml: [
+        '<strong>Tabular data model:</strong> Tyco is built around tables with schemas. TOML uses array-of-tables which lack type safety and require repetition.',
+        '<strong>Object references:</strong> Tyco supports references to other objects (<code>Port(http_web)</code>). TOML only stores raw values.',
+        '<strong>Inline schema:</strong> Tyco defines types directly in the file. TOML has no type system, everything is inferred.',
+        '<strong>Defaults and templates:</strong> Tyco supports default values and templating to stay DRY. TOML requires explicit values everywhere.',
+        '<strong>Better for complex config:</strong> Tyco handles relational data naturally. TOML becomes unwieldy as configuration complexity grows.'
+      ],
+      csv: [
+        '<strong>Multiple related tables:</strong> Tyco supports multiple struct types in one file. CSV requires separate files for each table.',
+        '<strong>Type safety:</strong> Tyco declares types for each field. CSV has no types, everything is a string until parsed.',
+        '<strong>Default values:</strong> Tyco lets you set defaults to avoid repetition. CSV requires every cell to be filled.',
+        '<strong>Object references:</strong> Tyco can reference other objects (<code>Host(prod-01-us)</code>). CSV requires duplicating data or complex joins.',
+        '<strong>Readability:</strong> Tyco uses clear syntax with whitespace. CSV is cramped, hard to scan, and breaks with commas in values.'
+      ],
+      cue: [
+        '<strong>Simpler learning curve:</strong> Tyco has minimal syntax focused on configuration. CUE is a full constraint language with a steeper learning curve.',
+        '<strong>Explicit over inference:</strong> Tyco requires explicit types. CUE uses unification and constraints which can be harder to debug.',
+        '<strong>Focused on config data:</strong> Tyco is purpose-built for configuration files. CUE is a general validation/templating system.',
+        '<strong>Less ceremony:</strong> Tyco uses straightforward declarations. CUE requires understanding unification, disjunctions, and defaults syntax (<code>| *value</code>).',
+        '<strong>Tabular clarity:</strong> Tyco\'s row syntax makes tabular data obvious. CUE uses nested list structures that are harder to scan.'
+      ]
+    };
+
+    const pointsList = document.getElementById('points-list');
+    const comparisonTitle = document.getElementById('comparison-title');
+
+    compareButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const format = this.dataset.format;
+        
+        // Update active button
+        compareButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Show selected panel, hide others
+        Object.keys(panels).forEach(key => {
+          if (key === format) {
+            panels[key].classList.remove('hidden');
+          } else {
+            panels[key].classList.add('hidden');
+          }
+        });
+
+        // Update comparison title
+        comparisonTitle.textContent = `Tyco vs ${format.toUpperCase()}`;
+
+        // Update comparison points
+        pointsList.innerHTML = comparisonPoints[format]
+          .map(point => `<li>${point}</li>`)
+          .join('');
+      });
+    });
+  </script>
 </body>
 </html>
