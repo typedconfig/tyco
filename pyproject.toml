@@ -7,7 +7,7 @@ name = "tyco"
 version = "0.1.1"
 description = "A Python library for the Typed Configuration language"
 authors = [{name = "Matt Lauria", email = "matt@typedconfig.io"}]
-license = {text = "MIT"}  # Or another license, e.g., Apache-2.0
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["configuration", "language", "parser"]
