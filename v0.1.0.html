@@ -324,6 +324,7 @@
       
       <nav>
         <a href="#introduction">Introduction</a>
+        <a href="#features">Features</a>
         <a href="#spec">Specification</a>
         <a href="#comment">Comment</a>
         <a href="#string">String</a>
@@ -358,6 +359,87 @@
         <li>Systems requiring type safety and validation</li>
         <li>Teams that value explicit, auditable configuration</li>
         <li>Applications needing to map configuration to strongly-typed native objects</li>
+      </ul>
+
+      <h2 id="features">Features</h2>
+      <p>Tyco provides a rich set of features for building type-safe, maintainable configuration files:</p>
+
+      <h3>Type System</h3>
+      <ul>
+        <li><strong>Explicit Type Annotations</strong> — All values must declare their type: <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>, <code>date</code>, <code>time</code>, <code>datetime</code></li>
+        <li><strong>Custom Struct Types</strong> — Define structured data types with named fields and type constraints</li>
+        <li><strong>Array Types</strong> — Declare arrays of any type with <code>[]</code> suffix notation</li>
+        <li><strong>Nullable Types</strong> — Mark optional fields with <code>?</code> prefix to allow <code>null</code> values</li>
+        <li><strong>Type Validation</strong> — Parser enforces type correctness at parse time</li>
+      </ul>
+
+      <h3>Data Structures</h3>
+      <ul>
+        <li><strong>Global Attributes</strong> — Top-level key-value pairs accessible throughout the configuration</li>
+        <li><strong>Struct Definitions</strong> — Reusable schemas with field types and constraints</li>
+        <li><strong>Struct Instances</strong> — Create multiple instances of a struct with compact row syntax</li>
+        <li><strong>Arrays</strong> — Homogeneous collections with <code>[value1, value2, ...]</code> syntax</li>
+        <li><strong>Nested Structures</strong> — Structs can contain other struct types as fields</li>
+      </ul>
+
+      <h3>References & Relations</h3>
+      <ul>
+        <li><strong>Primary Keys</strong> — Mark fields with <code>*</code> to enable lookups and references</li>
+        <li><strong>Object References</strong> — Reference existing objects with <code>TypeName(key)</code> syntax</li>
+        <li><strong>Inline Object Creation</strong> — Create objects inline with <code>TypeName(value1, value2, ...)</code></li>
+        <li><strong>Relational Data</strong> — Build normalized, relational configuration structures</li>
+      </ul>
+
+      <h3>String Features</h3>
+      <ul>
+        <li><strong>Basic Strings</strong> — Double-quoted strings with escape sequences (<code>\n</code>, <code>\t</code>, <code>\u0000</code>, etc.)</li>
+        <li><strong>Literal Strings</strong> — Single-quoted strings with no escape processing</li>
+        <li><strong>Multi-line Strings</strong> — Triple-quoted variants (<code>"""</code> and <code>'''</code>) for multi-line text</li>
+        <li><strong>Template Interpolation</strong> — Embed field references with <code>{field}</code> syntax</li>
+        <li><strong>Nested Field Access</strong> — Access referenced object fields with <code>{object.field}</code></li>
+        <li><strong>Parent Traversal</strong> — Reference parent scope with <code>{..field}</code> or <code>{...field}</code></li>
+        <li><strong>Line Continuation</strong> — Use trailing backslash to continue strings across lines</li>
+      </ul>
+
+      <h3>Number Formats</h3>
+      <ul>
+        <li><strong>Decimal Integers</strong> — Standard base-10 notation: <code>42</code>, <code>-17</code></li>
+        <li><strong>Hexadecimal</strong> — <code>0x</code> prefix for base-16: <code>0x1F</code>, <code>0xFF</code></li>
+        <li><strong>Octal</strong> — <code>0o</code> prefix for base-8: <code>0o755</code>, <code>0o644</code></li>
+        <li><strong>Binary</strong> — <code>0b</code> prefix for base-2: <code>0b1010</code>, <code>0b11111111</code></li>
+        <li><strong>Floating Point</strong> — Decimal numbers with fractional parts: <code>3.14</code>, <code>-0.001</code></li>
+      </ul>
+
+      <h3>Defaults & Reusability</h3>
+      <ul>
+        <li><strong>Default Values</strong> — Set defaults in schema or as separate declarations</li>
+        <li><strong>Value Inheritance</strong> — Instances inherit defaults unless overridden</li>
+        <li><strong>DRY Principle</strong> — Avoid repetition with defaults and references</li>
+      </ul>
+
+      <h3>Composition & Organization</h3>
+      <ul>
+        <li><strong>Include Directive</strong> — Split configuration across files with <code>#include path</code></li>
+        <li><strong>Comments</strong> — Document configuration with <code>#</code> line comments</li>
+        <li><strong>Mixed Syntax</strong> — Combine positional and named values in instance declarations</li>
+        <li><strong>Line Continuation</strong> — Split long declarations with trailing backslash</li>
+      </ul>
+
+      <h3>Date & Time Support</h3>
+      <ul>
+        <li><strong>ISO 8601 Format</strong> — Standard date and time representations</li>
+        <li><strong>Date Type</strong> — Calendar dates in <code>YYYY-MM-DD</code> format</li>
+        <li><strong>Time Type</strong> — Time of day in <code>HH:MM:SS</code> format</li>
+        <li><strong>Datetime Type</strong> — Combined date and time with timezone support</li>
+      </ul>
+
+      <h3>Developer Experience</h3>
+      <ul>
+        <li><strong>Self-Documenting</strong> — Type annotations make configuration intent clear</li>
+        <li><strong>Editor-Friendly</strong> — Simple syntax works well in text editors and terminals</li>
+        <li><strong>Error Detection</strong> — Type mismatches caught at parse time, not runtime</li>
+        <li><strong>Linting Support</strong> — Built-in validation for missing fields and type errors</li>
+        <li><strong>Line Attribution</strong> — Errors map to specific file and line numbers</li>
       </ul>
 
       <h2 id="spec">Specification</h2>
