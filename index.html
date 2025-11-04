@@ -262,13 +262,6 @@
     .csv-header { color: #73b2ff; font-weight: 600; }
     .csv-value { color: #e5e7eb; }
 
-    /* CUE syntax highlighting */
-    .cue-key { color: #73b2ff; }
-    .cue-string { color: #7ad98a; }
-    .cue-number { color: #ffb86b; }
-    .cue-boolean { color: #d58bff; }
-    .cue-type { color: #fbffba; }
-    .cue-comment { color: #6b8aa2; font-style: italic; }
 
     .comparison-points {
       margin-top: 2rem;
@@ -429,7 +422,6 @@
         <button class="compare-btn" data-format="xml">XML</button>
         <button class="compare-btn" data-format="toml">TOML</button>
         <button class="compare-btn" data-format="csv">CSV</button>
-        <button class="compare-btn" data-format="cue">CUE</button>
       </div>
 
       <div class="comparison-grid">
@@ -687,75 +679,6 @@
 <span class="csv-value">http_mysql,3306</span></code></pre>
         </div>
 
-        <!-- CUE (right side, hidden by default) -->
-        <div class="code-panel hidden" id="cue-panel">
-          <div class="code-header">CUE</div>
-          <pre class="code-block cue"><code><span class="cue-key">timezone</span>: <span class="cue-string">"UTC"</span>  <span class="cue-comment">// this is a global config setting</span>
-
-<span class="cue-key">Application</span>: [
-  {
-    <span class="cue-key">service</span>:  <span class="cue-type">string</span>
-    <span class="cue-key">profile</span>:  <span class="cue-type">string</span>
-    <span class="cue-key">command</span>:  <span class="cue-type">string</span>
-    <span class="cue-key">host</span>:     <span class="cue-type">string</span>
-    <span class="cue-key">port</span>:     <span class="cue-type">string</span>
-  },
-  {
-    <span class="cue-key">service</span>: <span class="cue-string">"webserver"</span>
-    <span class="cue-key">profile</span>: <span class="cue-string">"primary"</span>
-    <span class="cue-key">command</span>: <span class="cue-string">"start_app webserver.primary -p 80"</span>
-    <span class="cue-key">host</span>:    <span class="cue-string">"prod-01-us"</span>
-    <span class="cue-key">port</span>:    <span class="cue-string">"http_web"</span>
-  },
-  {
-    <span class="cue-key">service</span>: <span class="cue-string">"webserver"</span>
-    <span class="cue-key">profile</span>: <span class="cue-string">"backup"</span>
-    <span class="cue-key">command</span>: <span class="cue-string">"start_app webserver.backup -p 80"</span>
-    <span class="cue-key">host</span>:    <span class="cue-string">"prod-02-us"</span>
-    <span class="cue-key">port</span>:    <span class="cue-string">"http_web"</span>
-  },
-  {
-    <span class="cue-key">service</span>: <span class="cue-string">"database"</span>
-    <span class="cue-key">profile</span>: <span class="cue-string">"mysql"</span>
-    <span class="cue-key">command</span>: <span class="cue-string">"start_app database.mysql -p 3306"</span>
-    <span class="cue-key">host</span>:    <span class="cue-string">"prod-02-us"</span>
-    <span class="cue-key">port</span>:    <span class="cue-string">"http_mysql"</span>
-  },
-]
-
-<span class="cue-key">Host</span>: [
-  {
-    <span class="cue-key">hostname</span>:      <span class="cue-type">string</span>  <span class="cue-comment">// primary key for lookups</span>
-    <span class="cue-key">cores</span>:         <span class="cue-type">int</span>
-    <span class="cue-key">hyperthreaded</span>: <span class="cue-type">bool</span> | *<span class="cue-boolean">true</span>
-    <span class="cue-key">os</span>:            <span class="cue-type">string</span> | *<span class="cue-string">"Debian"</span>
-  },
-  {
-    <span class="cue-key">hostname</span>:      <span class="cue-string">"prod-01-us"</span>
-    <span class="cue-key">cores</span>:         <span class="cue-number">64</span>
-    <span class="cue-key">hyperthreaded</span>: <span class="cue-boolean">false</span>
-  },
-  {
-    <span class="cue-key">hostname</span>: <span class="cue-string">"prod-02-us"</span>
-    <span class="cue-key">cores</span>:    <span class="cue-number">32</span>
-    <span class="cue-key">os</span>:       <span class="cue-string">"Fedora"</span>
-  },
-]
-
-<span class="cue-key">Port</span>: [
-  {
-    <span class="cue-key">name</span>:   <span class="cue-type">string</span>  <span class="cue-comment">// primary key</span>
-    <span class="cue-key">number</span>: <span class="cue-type">int</span>
-  },
-  {
-    <span class="cue-key">name</span>:   <span class="cue-string">"http_web"</span>
-    <span class="cue-key">number</span>: <span class="cue-number">80</span>
-  },
-  {
-    <span class="cue-key">name</span>:   <span class="cue-string">"http_mysql"</span>
-    <span class="cue-key">number</span>: <span class="cue-number">3306</span>
-  },
-]</code></pre>
         </div>
       </div>
 
@@ -808,7 +731,6 @@
       xml: document.getElementById('xml-panel'),
       toml: document.getElementById('toml-panel'),
       csv: document.getElementById('csv-panel'),
-      cue: document.getElementById('cue-panel')
     };
 
     const comparisonPoints = {
@@ -847,13 +769,6 @@
         '<strong>Object references:</strong> Tyco can reference other objects (<code>Host(prod-01-us)</code>). CSV requires duplicating data or complex joins.',
         '<strong>Readability:</strong> Tyco uses clear syntax with whitespace. CSV is cramped, hard to scan, and breaks with commas in values.'
       ],
-      cue: [
-        '<strong>Simpler learning curve:</strong> Tyco has minimal syntax focused on configuration. CUE is a full constraint language with a steeper learning curve.',
-        '<strong>Explicit over inference:</strong> Tyco requires explicit types. CUE uses unification and constraints which can be harder to debug.',
-        '<strong>Focused on config data:</strong> Tyco is purpose-built for configuration files. CUE is a general validation/templating system.',
-        '<strong>Less ceremony:</strong> Tyco uses straightforward declarations. CUE requires understanding unification, disjunctions, and defaults syntax (<code>| *value</code>).',
-        '<strong>Tabular clarity:</strong> Tyco\'s row syntax makes tabular data obvious. CUE uses nested list structures that are harder to scan.'
-      ]
     };
 
     const pointsList = document.getElementById('points-list');
