@@ -32,7 +32,7 @@
 </head>
 <body>
   <header class="banner">
-    <a href="../index.html" class="brand">
+    <a href="index.html" class="brand">
       <span class="brand-ty">Ty</span><span class="brand-ped">ped</span> <span class="brand-co">Co</span><span class="brand-nfig">nfig</span>
     </a>
     <nav class="nav-actions">
@@ -76,14 +76,14 @@ Application:
   - service: webserver, profile: primary, host: prod-01-us
   - service: database, profile: mysql, host: prod-02-us</code></pre>
     <div class="footer">
-      <p>Back to <a href="../index.html">home</a> · View the <a href="spec/0.1.0.html">full spec</a> · <a href="https://github.com/typedconfig/tyco" target="_blank" rel="noopener">GitHub</a></p>
+      <p>Back to <a href="index.html">home</a> · View the <a href="spec.html">full spec</a> · <a href="https://github.com/typedconfig/tyco" target="_blank" rel="noopener">GitHub</a></p>
     </div>
   </main>
   <script>
     document.getElementById('spec-version').addEventListener('change', function(e) {
       const version = e.target.value;
       if (version) {
-        window.location.href = `spec/${version}.html`;
+        window.location.href = `spec.html`;
       }
     });
   </script>

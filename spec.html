@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Tyco Spec v0.1.1</title>
+  <title>TypedConfig</title>
   <style>
     * {
       margin: 0;
@@ -229,15 +229,14 @@
 </head>
 <body>
   <header class="banner">
-    <a href="../../index.html" class="brand">
+    <a href="index.html" class="brand">
       <span class="brand-ty">Ty</span><span class="brand-ped">ped</span> <span class="brand-co">Co</span><span class="brand-nfig">nfig</span>
     </a>
     
     <nav class="nav-actions">
       <select class="spec-selector" id="spec-version" aria-label="Spec Version">
         <option value="">Spec</option>
-        <option value="0.1.1" selected>v0.1.1</option>
-        <option value="0.1.0">v0.1.0</option>
+        <option value="0.1.0" selected>v0.1.0</option>
       </select>
       
       <a href="https://github.com/typedconfig/tyco" class="gh-link" target="_blank" rel="noopener" aria-label="View on GitHub">
@@ -262,7 +261,7 @@
       </nav>
     </aside>
     <div class="spec-content">
-      <h1 id="overview">Tyco Specification — v0.1.1</h1>
+      <h1 id="overview">Tyco Specification — v0.1.0</h1>
       <p>Tyco is an explicitly-typed configuration language designed for readable, auditable, and unambiguous configuration files. It favors explicit type declarations, flat composition, and predictable parsing. Tyco aims to suit large configuration systems, terminal workflows, and engineers who prefer clarity and stability in configuration.</p>
 
       <h2 id="goals">Goals</h2>
@@ -339,7 +338,7 @@
     document.getElementById('spec-version').addEventListener('change', function(e) {
       const version = e.target.value;
       if (version) {
-        window.location.href = `${version}.html`;
+        window.location.href = `spec.html`;
       }
     });
 
