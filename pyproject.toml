@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tyco"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python library for the Typed Configuration language"
 authors = [{name = "Matt Lauria", email = "matt@typedconfig.io"}]
 license = {text = "MIT"}  # Or another license, e.g., Apache-2.0
