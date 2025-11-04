@@ -107,7 +107,7 @@ class TycoLexer:
                     raise Exception(f'Invalid included path: {line}')
                 lexer = self.__class__.from_path(self.context, path)
                 lexer.process()
-                for type_name, attr_defaults in lexer.items():
+                for type_name, attr_defaults in lexer.defaults.items():
                     if type_name in self.defaults:
                         raise Exception(f'This should not happen: {struct.type_name} in {self.defaults}')
                     self.defaults[type_name] = attr_defaults.copy()
@@ -374,7 +374,6 @@ class TycoContext:
         self.path_cache = {}       # {path : TycoPath()}
         self.structs    = {}       # {type_name : TycoStruct()}
         self.globals    = {}       # {attr_name : TycoValue|TycoInstance|TycoArray|TycoReference}
-        self._classes   = {}       # {class_name : type()}
 
     def set_global_attr(self, attr_name, attr):
         if attr_name in self.globals:
@@ -458,7 +457,6 @@ class TycoStruct:
         self.array_keys = set()                         # {attr_name,...}
         self.instances = []                             # [TycoInstance(),...]
         self.mapped_instances = {}                      # {primary_keys : TycoInstance}
-        self._class = None
 
     @cached_property
     def attr_names(self):
@@ -509,6 +507,8 @@ class TycoStruct:
             attr.render_base_content()
             inst_kwargs[attr_name] = attr
         key = tuple(inst_kwargs[attr_name].rendered for attr_name in self.primary_keys)
+        if key not in self.mapped_instances:
+            raise Exception(f'Unable to find reference of {self.type_name}({key})')
         return self.mapped_instances[key]
 
     def _resolve_complete_kwargs(self, inst_kwargs, default_kwargs):
@@ -638,7 +638,7 @@ class TycoReference:                    # Lazy container class to refer to insta
         pass
 
     def render_references(self):
-        if self.rendered is not self._unrendered:                   #TODO remove when mature
+        if self.rendered is not self._unrendered:
             raise Exception(f'Rendered multiple times {self}')
         if self.type_name not in self.context.structs:
             raise Exception(f'Bad type name for reference: {self.type_name} {self.inst_args}')
@@ -685,7 +685,7 @@ class TycoArray:
         for i in self.content:
             i.apply_schema_info(type_name=self.type_name, attr_name=self.attr_name, is_nullable=False, is_array=False)
         if self.is_array is False:
-            raise Exception(f'Schema for {parent}.{self.attr_name} needs to indicate array with []')
+            raise Exception(f'Schema for {self.parent}.{self.attr_name} needs to indicate array with []')
 
     def set_parent(self, parent):
         self.parent = parent
