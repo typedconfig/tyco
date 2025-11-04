@@ -309,9 +309,87 @@
       color: #1e6fff;
     }
 
+    .cta-section {
+      margin-top: 2rem;
+      padding: 2rem 1.5rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .cta-section h2 {
+      margin: 0 0 1.5rem 0;
+      color: #111827;
+      font-size: 1.5rem;
+      text-align: center;
+    }
+
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .cta-card {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .cta-card h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.25rem;
+    }
+
+    .cta-card h3 a {
+      color: #1e6fff;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .cta-card h3 a:hover {
+      color: #1557cc;
+      text-decoration: underline;
+    }
+
+    .cta-card p {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .footer p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .footer a {
+      color: #1e6fff;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 968px) {
       .comparison-grid {
         grid-template-columns: 1fr;
+      }
+
+      .cta-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
       }
     }
   </style>
@@ -694,7 +772,25 @@
         </ul>
       </div>
     </section>
+
+    <section class="cta-section">
+      <h2>Ready to explore Tyco?</h2>
+      <div class="cta-grid">
+        <div class="cta-card">
+          <h3><a href="typedconfig.io/spec/0.1.1.html">Read the Spec</a></h3>
+          <p>Dive into the complete specification to understand Tyco's syntax, type system, and capabilities in detail.</p>
+        </div>
+        <div class="cta-card">
+          <h3><a href="typedconfig.io/start-coding.html">Start Coding</a></h3>
+          <p>Jump straight into examples and tutorials to get hands-on experience with Tyco right away.</p>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 Tyco. Released under the <a href="https://github.com/typedconfig/tyco/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.</p>
+  </footer>
 
   <script>
     // Handle spec version selection

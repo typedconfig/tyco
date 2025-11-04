@@ -4,42 +4,190 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Tyco Spec v0.1.1</title>
-  <link rel="stylesheet" href="../styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .banner {
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      text-decoration: none;
+    }
+
+    .brand-ty,
+    .brand-co {
+      color: #1e6fff;
+    }
+
+    .brand-ped,
+    .brand-nfig {
+      color: #111827;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .spec-selector {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #374151;
+      font-size: 0.875rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .spec-selector:hover {
+      border-color: #1e6fff;
+    }
+
+    .spec-selector:focus {
+      border-color: #1e6fff;
+      box-shadow: 0 0 0 3px rgba(30, 111, 255, 0.1);
+    }
+
+    .gh-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #111827;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .gh-link:hover {
+      background: #1f2937;
+    }
+
+    .gh-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .spec-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .spec-content {
+      max-width: 800px;
+    }
+
+    .spec-content h1 {
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+
+    .spec-content h2 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: #111827;
+    }
+
+    .spec-content p {
+      margin-bottom: 1rem;
+      color: #4b5563;
+    }
+
+    .spec-content ul {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+      color: #4b5563;
+    }
+
+    .spec-content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .spec-content code {
+      background: #f3f4f6;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.875em;
+      color: #1e6fff;
+    }
+
+    .spec-content pre {
+      background: #0f1419;
+      color: #e5e7eb;
+      padding: 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    .spec-content pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    .tok-key { color: #73b2ff; font-weight: 600; }
+    .tok-string { color: #7ad98a; }
+    .tok-comment { color: #6b8aa2; font-style: italic; }
+    .tok-number { color: #ffb86b; }
+  </style>
 </head>
 <body>
   <header class="banner">
-    <div class="banner-inner container">
-      <div>
-  <h1 class="brand"><a class="brand-link" href="../index.html">Tyco <small class="tag">typed configuration</small></a></h1>
-      </div>
-      <div class="nav-actions">
-        <div class="versions">
-          <select id="spec-version" aria-label="Spec Version">
-            <option value="" disabled selected>Full Spec</option>
-            <option value="0.1.1">v0.1.1</option>
-            <option value="0.1.0">v0.1.0</option>
-          </select>
-        </div>
-        <a class="gh-btn" href="https://github.com/typedconfig" target="_blank" rel="noopener" aria-label="View on GitHub">
-          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
-            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
-          </svg>
-        </a>
-      </div>
-    </div>
+    <a href="../../index.html" class="brand">
+      <span class="brand-ty">Ty</span><span class="brand-ped">ped</span> <span class="brand-co">Co</span><span class="brand-nfig">nfig</span>
+    </a>
+    
+    <nav class="nav-actions">
+      <select class="spec-selector" id="spec-version" aria-label="Spec Version">
+        <option value="">Spec</option>
+        <option value="0.1.1" selected>v0.1.1</option>
+        <option value="0.1.0">v0.1.0</option>
+      </select>
+      
+      <a href="https://github.com/typedconfig/tyco" class="gh-link" target="_blank" rel="noopener" aria-label="View on GitHub">
+        <svg class="gh-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+    </nav>
   </header>
 
   <div class="spec-wrap">
-    <nav class="spec-toc" aria-label="Specification contents">
-      <a href="#overview">Overview</a>
-      <a href="#goals">Goals</a>
-      <a href="#features">Key features</a>
-      <a href="#lexical">Lexical elements</a>
-      <a href="#types">Types & values</a>
-      <a href="#grammar">Grammar (concise)</a>
-      <a href="#examples">Examples</a>
-    </nav>
-
     <div class="spec-content">
       <h1 id="overview">Tyco Specification — v0.1.1</h1>
       <p>Tyco is an explicitly-typed configuration language designed for readable, auditable, and unambiguous configuration files. It favors explicit type declarations, flat composition, and predictable parsing. Tyco aims to suit large configuration systems, terminal workflows, and engineers who prefer clarity and stability in configuration.</p>
@@ -112,6 +260,15 @@
       <p>Further sections: references, includes, templating, and validation rules can be expanded in later revisions.</p>
     </div>
   </div>
-  <script src="../script.js"></script>
+
+  <script>
+    // Handle spec version selection
+    document.getElementById('spec-version').addEventListener('change', function(e) {
+      const version = e.target.value;
+      if (version) {
+        window.location.href = `${version}.html`;
+      }
+    });
+  </script>
 </body>
 </html>
