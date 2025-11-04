@@ -659,6 +659,35 @@ Second line'''</span></code></pre>
   <span class="tok-key">port</span>: <span class="tok-number">80</span>  <span class="tok-comment"># Default port value</span>
   <span class="tok-key">ssl</span>: <span class="tok-boolean">false</span></code></pre>
 
+      <h3>Multiple Struct Blocks with Different Defaults</h3>
+      <p>You can create multiple struct blocks for the same type with different default values. Each block can define its own defaults and instances. This is useful for organizing instances by environment, region, or other categories.</p>
+
+      <pre><code><span class="tok-comment"># First Server block with development defaults</span>
+<span class="tok-key">Server</span>:
+ *<span class="tok-type">str</span> <span class="tok-key">hostname</span>:
+  <span class="tok-type">int</span> <span class="tok-key">port</span>:
+  <span class="tok-type">bool</span> <span class="tok-key">ssl</span>:
+  <span class="tok-key">port</span>: <span class="tok-number">8080</span>  <span class="tok-comment"># Dev default</span>
+  <span class="tok-key">ssl</span>: <span class="tok-boolean">false</span>
+  - <span class="tok-string">dev1.internal</span>
+  - <span class="tok-string">dev2.internal</span>
+
+<span class="tok-comment"># Second Server block with production defaults</span>
+<span class="tok-key">Server</span>:
+  <span class="tok-key">port</span>: <span class="tok-number">443</span>  <span class="tok-comment"># Production default</span>
+  <span class="tok-key">ssl</span>: <span class="tok-boolean">true</span>
+  - <span class="tok-string">prod1.example.com</span>
+  - <span class="tok-string">prod2.example.com</span>
+
+<span class="tok-comment"># Third Server block with custom defaults</span>
+<span class="tok-key">Server</span>:
+  <span class="tok-key">port</span>: <span class="tok-number">3000</span>  <span class="tok-comment"># API default</span>
+  <span class="tok-key">ssl</span>: <span class="tok-boolean">true</span>
+  - <span class="tok-string">api1.example.com</span>
+  - <span class="tok-string">api2.example.com</span></code></pre>
+
+      <p>All instances from all blocks are collected together into a single array for the <code>Server</code> type.</p>
+
       <h2 id="instances">Struct Instances</h2>
       <p>Struct instances are created using a dash (<code>-</code>) followed by field values. Values can be provided in order or as named assignments.</p>
 
