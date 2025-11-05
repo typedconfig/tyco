@@ -7,12 +7,14 @@ import enum
 import types
 import string
 import decimal
+import pathlib
 import datetime
 import itertools
+import importlib
 import collections
 
 
-__all__ = ['Struct', 'load']
+__all__ = ['Struct', 'load', 'loads']
 
 
 ASCII_CTRL = frozenset(chr(i) for i in range(32)) | frozenset(chr(127))
@@ -82,29 +84,47 @@ class TycoLexer:
     @classmethod
     def from_path(cls, context, path):
         if path not in context._path_cache:
+            if not os.path.isfile(path):
+                raise Exception(f'Can only load path if is a regular file: {path}')
+            base_filename = path
+            if base_filename.endswith('.tyco'):
+                base_filename = base_filename[:-5]
+            module_path = f'{base_filename}.py'
+            if os.path.exists(module_path):
+                try:
+                    module_name = os.path.basename(base_filename).replace('-', '_')
+                    spec = importlib.util.spec_from_file_location(module_name, module_path)
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[module_name] = module
+                    spec.loader.exec_module(module)
+                except Exception:
+                    # Ignore import errors in validation modules
+                    pass
             with open(path) as f:
                 lines = list(f.readlines())
-            lexer = cls(context, lines)
+            lexer = cls(context, lines, path)
             lexer.process()
             context._path_cache[path] = lexer
-        return lexer
+        return context._path_cache[path]
 
-    def __init__(self, context, lines):
+    def __init__(self, context, lines, path=None):
         self.context = context
         self.lines = collections.deque(lines)
+        self.path = path
         self.num_lines = len(lines)
         self.defaults = {}       # {type_name : {attr_name : TycoInstance|TycoValue|TycoArray|TycoReference}}
 
     def process(self):
         while self.lines:
             line = self.lines.popleft()
-            if line.startswith('#include '):
-                try:
-                    path = line.split(maxsplit=1)[1].strip()
-                    if not path:
-                        raise Exception
-                except Exception:
-                    raise Exception(f'Invalid included path: {line}')
+            if match := re.match(r'#include\s+(\S.*)$', line):
+                path = match.groups()[0]
+                if not os.path.isabs(path):
+                    if self.path is None:
+                        rel_dir = os.getcwd()
+                    else:
+                        rel_dir = os.path.dirname(self.path)
+                    path = os.path.join(rel_dir, path)
                 lexer = self.__class__.from_path(self.context, path)
                 lexer.process()
                 for type_name, attr_defaults in lexer.defaults.items():
@@ -135,7 +155,7 @@ class TycoLexer:
         if not default_text:
             raise Exception(f'Must provide a value when setting globals')
         self.lines.appendleft(default_text)
-        attr, delim = self._load_tyco_attr2()
+        attr, delim = self._load_tyco_attr()
         attr.apply_schema_info(type_name=type_name, attr_name=attr_name, is_nullable=is_nullable, is_array=is_array)
         self.context._set_global_attr(attr_name, attr)
 
@@ -171,7 +191,7 @@ class TycoLexer:
             default_content = strip_comments(default_text)
             if default_content:
                 self.lines.appendleft(default_text)
-                attr, delim = self._load_tyco_attr2()
+                attr, delim = self._load_tyco_attr()
                 self.defaults[struct.type_name][attr_name] = attr
 
     def _load_local_defaults_and_instances(self, struct):
@@ -196,7 +216,7 @@ class TycoLexer:
                 default_text = line.split(':', maxsplit=1)[1].lstrip()
                 if strip_comments(default_text):
                     self.lines.appendleft(default_text)
-                    attr, delim = self._load_tyco_attr2()
+                    attr, delim = self._load_tyco_attr()
                     self.defaults[struct.type_name][attr_name] = attr
                 else:
                     self.defaults[struct.type_name].pop(attr_name, None)          # if empty remove previous defaults
@@ -215,11 +235,11 @@ class TycoLexer:
                         if self.lines:
                             self.lines[0] = self.lines[0].lstrip()
                         continue
-                    attr, delim = self._load_tyco_attr2(good_delim=(',', os.linesep), pop_empty_lines=False)
+                    attr, delim = self._load_tyco_attr(good_delim=(',', os.linesep), pop_empty_lines=False)
                     inst_args.append(attr)
                 struct.create_instance(inst_args, self.defaults[struct.type_name])
 
-    def _load_tyco_attr2(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True):
+    def _load_tyco_attr(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True):
         bad_delim = set(bad_delim) | set('()[],') - set(good_delim)
         if not self.lines:
             raise Exception(f'Syntax error: no content found')
@@ -301,7 +321,7 @@ class TycoLexer:
             if self.lines[0].startswith(closing_char):                  # can happen with a trailing comma
                 self.lines[0] = self.lines[0][1:]
                 break
-            attr, delim = self._load_tyco_attr2(good_delims, bad_delims)
+            attr, delim = self._load_tyco_attr(good_delims, bad_delims)
             array.append(attr)
             if delim == closing_char:
                 break
@@ -880,7 +900,22 @@ class Struct(types.SimpleNamespace):
 
 def load(path):
     context = TycoContext()
-    tyco_lexer = TycoLexer.from_path(context, path)
-    tyco_lexer.process()
+    if os.path.isdir(path):
+        dir_path = pathlib.Path(path)
+        paths = [str(p) for p in dir_path.rglob('*.tyco')]
+    else:
+        paths = [str(path)]
+    for path in paths:
+        lexer = TycoLexer.from_path(context, path)
+        lexer.process()
+    context._render_content()
+    return context
+
+
+def loads(content):
+    context = TycoContext()
+    lines = content.splitlines(keepends=True)
+    lexer = TycoLexer(context, lines)
+    lexer.process()
     context._render_content()
     return context
