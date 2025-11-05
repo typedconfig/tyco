@@ -18,5 +18,5 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "http://www.typedconfig.io"
-Repository = "https://github.com/typedconfig/tyco"
+Homepage = "https://typedconfig.io"
+Repository = "https://github.com/typedconfig/tyco-python"
