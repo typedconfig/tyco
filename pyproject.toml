@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tyco"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Python library for the Typed Configuration language"
 authors = [{name = "Matt Lauria", email = "matt@typedconfig.io"}]
 license = "MIT"
@@ -13,7 +13,6 @@ requires-python = ">=3.8"
 keywords = ["configuration", "language", "parser"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 
