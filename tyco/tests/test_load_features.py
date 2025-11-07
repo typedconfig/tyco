@@ -535,3 +535,104 @@ Organization:
     # Verify that {global} refers to the local field, not global scope
     assert data['Organization'][0]['global'] == "local-value"
     assert data['Organization'][0]['description'] == "Using field: local-value"
+
+
+def test_get_globals_basic():
+    """Test get_globals() method with basic global variables."""
+    content = """
+str environment: production
+int port: 8080
+bool debug: false
+float version: 1.2
+
+Server:
+ *str name:
+  - web1
+"""
+    context = loads(content)
+    globals_obj = context.get_globals()
+    
+    # Test dot notation access to global variables
+    assert globals_obj.environment == "production"
+    assert globals_obj.port == 8080
+    assert globals_obj.debug is False
+    assert globals_obj.version == 1.2
+
+
+def test_get_globals_with_complex_types():
+    """Test get_globals() with arrays and complex global variables."""
+    content = """
+str[] environments: ["dev", "staging", "prod"]
+int[] ports: [8080, 8081, 8082]
+
+Database:
+ *str name:
+  - primary
+"""
+    context = loads(content)
+    globals_obj = context.get_globals()
+    
+    # Test array access
+    assert globals_obj.environments == ["dev", "staging", "prod"]
+    assert globals_obj.ports == [8080, 8081, 8082]
+    assert len(globals_obj.environments) == 3
+    assert globals_obj.ports[0] == 8080
+
+
+def test_get_globals_empty_context():
+    """Test get_globals() with no global variables defined."""
+    content = """
+Server:
+ *str name:
+  - web1
+"""
+    context = loads(content)
+    globals_obj = context.get_globals()
+    
+    # Should return an object with no attributes (but not fail)
+    # We can check if accessing undefined attributes raises AttributeError
+    with pytest.raises(AttributeError):
+        _ = globals_obj.nonexistent_var
+
+
+def test_get_globals_with_templates():
+    """Test get_globals() when global variables use templates."""
+    content = """
+str env: staging
+str region: us-west-2
+str domain: example.com
+str full_domain: "{env}.{region}.{domain}"
+
+App:
+ *str name:
+  - myapp
+"""
+    context = loads(content)
+    globals_obj = context.get_globals()
+    
+    # Test that templated globals are expanded
+    assert globals_obj.env == "staging"
+    assert globals_obj.region == "us-west-2"
+    assert globals_obj.domain == "example.com"
+    assert globals_obj.full_domain == "staging.us-west-2.example.com"
+
+
+def test_get_globals_attribute_access_vs_dict():
+    """Test that get_globals() returns an object with dot notation access, not a dict."""
+    content = """
+str app_name: MyApplication
+int timeout: 30
+"""
+    context = loads(content)
+    globals_obj = context.get_globals()
+    
+    # Should work with dot notation
+    assert globals_obj.app_name == "MyApplication"
+    assert globals_obj.timeout == 30
+    
+    # Should not be a dictionary
+    assert not isinstance(globals_obj, dict)
+    
+    # Should raise AttributeError for undefined attributes
+    with pytest.raises(AttributeError):
+        _ = globals_obj.undefined_attribute

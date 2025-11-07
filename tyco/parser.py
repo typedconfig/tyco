@@ -440,8 +440,8 @@ class TycoContext:
             for inst in struct.instances:
                 inst.render_templates()
 
-    def get_global_objects(self):
-        return {a : i.get_object() for a, i in self._globals.items()}
+    def get_globals(self):
+        return Struct(**{a : i.get_object() for a, i in self._globals.items()})
 
     def get_objects(self):
         objects = {}
