@@ -339,3 +339,199 @@ class Port(Struct):
     # Should fail validation on the invalid port
     with pytest.raises(ValueError, match="Port number 70000 out of valid range"):
         objects = context.get_objects()
+
+
+def test_base_instance_parent_relationships():
+    """Test that base instances (globals) have the globals dict as their parent."""
+    content = """
+str env: production
+int max_connections: 1000
+
+Person:
+ *str name:
+  int age:
+  - "Alice", 30
+
+# Global reference to person
+Person admin: Person(Alice)
+"""
+    context = loads(content)
+    
+    # Check that global attributes have globals as parent (unchanged from your original design)
+    env_attr = context._globals['env']
+    assert env_attr.parent is context._globals
+    
+    max_connections_attr = context._globals['max_connections']
+    assert max_connections_attr.parent is context._globals
+    
+    admin_attr = context._globals['admin']
+    assert admin_attr.parent is context._globals
+
+
+def test_template_expansion_with_global_access():
+    """Test that instances can access global variables using global. syntax."""
+    content = """
+str environment: staging
+str region: us-west-2
+
+Server:
+ *str name:
+  str full_name:
+  - "web", "{global.environment}-{name}-{global.region}"
+  
+# Global server instance that can access globals directly
+str global_server_name: "{environment}-api-{region}"
+"""
+    context = loads(content)
+    
+    # Test that template expansion works for base instances accessing globals directly
+    data = context.to_json()
+    assert data['global_server_name'] == 'staging-api-us-west-2'
+    
+    # Test that server instances access globals with global. prefix
+    assert data['Server'][0]['full_name'] == 'staging-web-us-west-2'
+
+
+def test_colon_validation_in_unquoted_content():
+    """Test that colons in unquoted content raise validation errors."""
+    
+    # Test case 1: URL with colon should fail if unquoted
+    with pytest.raises(Exception, match="Colon : found in content - enclose in quotes"):
+        content = """
+str api_url: https://api.example.com/v1
+"""
+        loads(content)
+    
+    # Test case 2: Identifier-like content with colon should fail
+    with pytest.raises(Exception, match="Colon : found in content - enclose in quotes"):
+        content = """
+str config: host:port
+"""
+        loads(content)
+    
+    # Test case 3: Times are OK because they start with digits (can't be field names)
+    content = """
+str start_time: 14:30:00
+str end_time: 09:15:30
+"""
+    context = loads(content)
+    data = context.to_json()
+    assert data['start_time'] == '14:30:00'
+    assert data['end_time'] == '09:15:30'
+
+
+def test_colon_validation_with_quoted_content():
+    """Test that properly quoted content with colons works correctly."""
+    content = """
+str api_url: 'https://api.example.com/v1'
+str start_time: '14:30:00'
+str config: 'host:port,timeout:30'
+str description: "A service running at https://example.com:8080"
+"""
+    context = loads(content)
+    data = context.to_json()
+    
+    assert data['api_url'] == 'https://api.example.com/v1'
+    assert data['start_time'] == '14:30:00'
+    assert data['config'] == 'host:port,timeout:30'
+    assert data['description'] == 'A service running at https://example.com:8080'
+
+
+def test_colon_validation_in_struct_instances():
+    """Test colon validation within struct instance values."""
+    
+    # This test demonstrates how unquoted colons create unexpected field parsing
+    # "service:config" becomes "service: config", creating a field named "service" instead of "endpoint"
+    with pytest.raises(Exception, match="Invalid attribute endpoint"):
+        content = """
+Server:
+ *str name:
+  str endpoint:
+  - "api", service:config
+"""
+        loads(content)
+    
+    # Should work: properly quoted values with colons
+    content = """
+Server:
+ *str name:
+  str url:
+  str endpoint:
+  - "api", "https://api.example.com", "service:config"
+"""
+    context = loads(content)
+    data = context.to_json()
+    assert data['Server'][0]['url'] == 'https://api.example.com'
+    assert data['Server'][0]['endpoint'] == 'service:config'
+
+
+def test_global_variable_access():
+    """Test accessing global variables using global. syntax."""
+    content = """
+str company: "TechCorp"
+str region: "us-west"
+
+Person:
+ *str name:
+  str company:
+  str email:
+  - "Alice", "{global.company}", "{name}@{global.company}.com"
+
+# Global instance can access globals directly
+str server_name: "{company}-api-{region}"
+"""
+    context = loads(content)
+    data = context.to_json()
+    
+    # Verify global access from struct instances
+    assert data['Person'][0]['company'] == 'TechCorp'
+    assert data['Person'][0]['email'] == 'Alice@TechCorp.com'
+    
+    # Verify direct global access
+    assert data['server_name'] == 'TechCorp-api-us-west'
+
+
+def test_explicit_syntax_requirements():
+    """Test that the new explicit syntax requirements work as expected."""
+    content = """
+str company: "TechCorp"
+str region: "us-west"
+
+# Globals can access other globals directly
+str message: "Company {company} operates in {region}"
+
+# Struct instances must use explicit global. syntax
+Person:
+ *str name:
+  str company_name:
+  str email:
+  - "Alice", "{global.company}", "{name}@{global.company}.com"
+"""
+    context = loads(content)
+    data = context.to_json()
+    
+    # Verify direct global access works
+    assert data['message'] == "Company TechCorp operates in us-west"
+    
+    # Verify explicit global. syntax works in struct instances
+    assert data['Person'][0]['company_name'] == "TechCorp"
+    assert data['Person'][0]['email'] == "Alice@TechCorp.com"
+
+
+def test_global_field_name_precedence():
+    """Test that a struct field named 'global' takes precedence over global scope access."""
+    content = """
+str company: "TechCorp"
+
+Organization:
+ *str name:
+  str global:
+  str description:
+  - "LocalCorp", "local-value", "Using field: {global}"
+"""
+    context = loads(content)
+    data = context.to_json()
+    
+    # Verify that {global} refers to the local field, not global scope
+    assert data['Organization'][0]['global'] == "local-value"
+    assert data['Organization'][0]['description'] == "Using field: local-value"

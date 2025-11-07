@@ -155,7 +155,7 @@ class TycoLexer:
         if not default_text:
             raise Exception(f'Must provide a value when setting globals')
         self.lines.appendleft(default_text)
-        attr, delim = self._load_tyco_attr()
+        attr, delim = self._load_tyco_attr(attr_name=attr_name)
         attr.apply_schema_info(type_name=type_name, attr_name=attr_name, is_nullable=is_nullable, is_array=is_array)
         self.context._set_global_attr(attr_name, attr)
 
@@ -191,7 +191,7 @@ class TycoLexer:
             default_content = strip_comments(default_text)
             if default_content:
                 self.lines.appendleft(default_text)
-                attr, delim = self._load_tyco_attr()
+                attr, delim = self._load_tyco_attr(attr_name=attr_name)
                 self.defaults[struct.type_name][attr_name] = attr
 
     def _load_local_defaults_and_instances(self, struct):
@@ -216,7 +216,7 @@ class TycoLexer:
                 default_text = line.split(':', maxsplit=1)[1].lstrip()
                 if strip_comments(default_text):
                     self.lines.appendleft(default_text)
-                    attr, delim = self._load_tyco_attr()
+                    attr, delim = self._load_tyco_attr(attr_name=attr_name)
                     self.defaults[struct.type_name][attr_name] = attr
                 else:
                     self.defaults[struct.type_name].pop(attr_name, None)          # if empty remove previous defaults
@@ -239,15 +239,16 @@ class TycoLexer:
                     inst_args.append(attr)
                 struct.create_instance(inst_args, self.defaults[struct.type_name])
 
-    def _load_tyco_attr(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True):
+    def _load_tyco_attr(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True, attr_name=None):
         bad_delim = set(bad_delim) | set('()[],') - set(good_delim)
         if not self.lines:
             raise Exception(f'Syntax error: no content found')
         if match := re.match(rf'{self.ire}\s*:\s*', self.lines[0]):     # need to exclude times w/ colons
+            if attr_name is not None:
+                raise Exception(f'Colon : found in content - enclose in quotes to prevent being used as a field name: {match.groups()[0]}')
             attr_name = match.groups()[0]
             self.lines[0] = self.lines[0][match.span()[1]:]
-        else:
-            attr_name = None
+            return self._load_tyco_attr(good_delim, bad_delim, pop_empty_lines, attr_name=attr_name)
         ch = self.lines[0][:1]
         if ch == '[':                                               # inline array
             self.lines[0] = self.lines[0][1:]
@@ -276,8 +277,7 @@ class TycoLexer:
         self.lines[0] = self.lines[0].lstrip(' \t')                 # do not strip off newlines
         if pop_empty_lines and not self.lines[0]:
             self.lines.popleft()
-        if attr_name is not None:
-            attr.apply_schema_info(attr_name=attr_name)
+        attr.apply_schema_info(attr_name=attr_name)
         return attr, delim
 
     def _strip_next_delim(self, good_delim):
@@ -699,7 +699,12 @@ class TycoArray:
         for attr, val in kwargs.items():
             setattr(self, attr, val)
         for i in self.content:
-            i.apply_schema_info(type_name=self.type_name, attr_name=self.attr_name, is_nullable=False, is_array=False)
+            kwargs = {'is_nullable' : False, 'is_array' : False}
+            if self.type_name is not None:
+                kwargs['type_name'] = self.type_name
+            if self.attr_name is not None:
+                kwargs['attr_name'] = self.attr_name
+            i.apply_schema_info(**kwargs)
         if self.is_array is False:
             raise Exception(f'Schema for {self.parent}.{self.attr_name} needs to indicate array with []')
 
@@ -843,8 +848,14 @@ class TycoValue:
                     if obj is None:
                         raise Exception(f'Traversing parents hit base instance')
                     template_var = template_var[1:]     # strip off a leading .
-            for attr in template_var.split('.'):
-                obj = obj[attr]
+            for i, attr in enumerate(template_var.split('.')):
+                try:
+                    obj = obj[attr]
+                except KeyError:
+                    if i == 0 and attr == 'global':
+                        obj = self.context._globals
+                    else:
+                        raise
             if obj.type_name not in ('str', 'int'):
                 raise Exception(f'Can not templatize objects other than strings or ints: {obj} ({self})')
             return str(obj.rendered)
