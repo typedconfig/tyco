@@ -23,53 +23,62 @@ import tyco
 config = tyco.load('config.tyco')
 
 # Access configuration values
-database_url = config.database.url
-port = config.server.port
-features = config.features  # Array access
+environment = config.environment
+servers = config.Server  # Access struct instances
+database_url = config.Database[0].connection_string
 ```
 
 ### Example Tyco File
 
 ```tyco
-# Global configuration
-environment = "production"
-debug = false
+# Global configuration with type annotations
+str environment: production
+bool debug: false
+int timeout: 30
 
-# Database configuration
-database {
-    host = "localhost"
-    port = 5432
-    name = "myapp"
-    url = "postgresql://{database.host}:{database.port}/{database.name}"
-}
+# Database configuration struct
+Database:
+ *str name:           # Required field (*)
+  str host:
+  int port:
+  str connection_string:
+  # Instances
+  - primary, localhost, 5432, postgresql://localhost:5432/myapp
+  - replica, replica-host, 5432, postgresql://replica-host:5432/myapp
 
-# Server configuration
-server {
-    port = 8080
-    workers = 4
-    timeout = 30.0
-}
+# Server configuration struct  
+Server:
+ *str name:
+  int port:
+  str host:
+  ?str description:    # Optional field (?)
+  # Server instances
+  - web1, 8080, web1.example.com, "Primary web server"
+  - api1, 3000, api1.example.com
+  - worker1, 9000, worker1.example.com, "Background worker"
 
-# Feature flags
-features = ["auth", "analytics", "caching"]
+# Feature flags array
+str[] features: [auth, analytics, caching]
 ```
 
 ## ✨ Features
 
 ### 🎯 **Type Safety**
-- **Strong Typing**: Automatic type inference and validation
-- **Runtime Checks**: Type safety enforced during parsing
-- **Clear Error Messages**: Helpful parsing errors with line numbers
+- **Strong Type Annotations**: `str`, `int`, `float`, `bool`, `date`, `time`, `datetime`
+- **Array Types**: `int[]`, `str[]`, etc. for typed arrays
+- **Nullable Types**: `?str`, `?int` for optional fields
+- **Runtime Validation**: Type safety enforced during parsing
+
+### 🏗️ **Structured Configuration**
+- **Struct Definitions**: Define reusable configuration structures
+- **Required/Optional Fields**: `*` for required, `?` for optional fields  
+- **Multiple Instances**: Create multiple instances of the same struct
+- **Nested References**: Access fields from other structs
 
 ### 🔧 **Template System**
 - **Variable Substitution**: Use `{variable}` syntax for dynamic values
-- **Nested References**: Support for complex variable relationships
-- **Scope Resolution**: Automatic resolution of global and local variables
-
-### 🏗️ **Flexible Structure**
-- **Nested Objects**: Unlimited nesting depth for complex configurations
-- **Arrays**: Support for homogeneous and mixed-type arrays
-- **Comments**: Full comment support for documentation
+- **Nested References**: `{struct.field}` for complex relationships
+- **Template Expansion**: Automatic resolution during parsing
 
 ### 🌐 **Cross-Platform**
 - **Pure Python**: No external dependencies
@@ -78,75 +87,96 @@ features = ["auth", "analytics", "caching"]
 
 ## 📖 Language Features
 
-### Data Types
+### Type Annotations
 
 ```tyco
-# Strings
-name = "MyApp"
-description = """
-Multi-line string
-with proper formatting
-"""
+# Basic types
+str app_name: MyApplication
+int port: 8080
+float timeout: 30.5
+bool enabled: true
 
-# Numbers
-port = 8080
-timeout = 30.5
-precision = 1.23e-4
+# Date and time types
+date launch_date: 2025-01-01
+time start_time: 09:00:00
+datetime created_at: 2025-01-01 09:00:00Z
 
-# Booleans
-debug = true
-production = false
+# Array types
+str[] environments: [dev, staging, prod]
+int[] ports: [80, 443, 8080]
 
-# Arrays
-servers = ["web1", "web2", "web3"]
-ports = [80, 443, 8080]
-mixed = ["string", 42, true]
+# Nullable types
+?str description: null
+?int backup_port: 8081
 ```
 
-### Object Structures
+### Struct Definitions
 
 ```tyco
-# Simple objects
-database {
-    host = "localhost"
-    port = 5432
-}
+# Define a struct with required (*) and optional (?) fields
+User:
+ *str username:        # Required field
+  str email:
+ ?str full_name:       # Optional field
+ ?int age: 25          # Optional with default
+  bool active: true    # Default value
+  # Create instances
+  - admin, admin@example.com, "Administrator", 35, true
+  - user1, user1@example.com, "John Doe", 28
+  - guest, guest@example.com  # Uses defaults for optional fields
 
-# Nested objects
-app {
-    server {
-        host = "0.0.0.0"
-        port = 8080
-    }
-    
-    cache {
-        redis {
-            host = "redis.local"
-            port = 6379
-        }
-    }
-}
+# Nested struct references
+Project:
+ *str name:
+  User owner:          # Reference to User struct
+  str[] tags:
+  - webapp, User(admin), [frontend, react]
+  - api, User(user1), [backend, python, fastapi]
 ```
 
 ### Template Variables
 
 ```tyco
 # Global variables for reuse
-base_url = "https://api.example.com"
-version = "v2"
+str environment: production
+str region: us-east-1
+str domain: example.com
 
-# Template substitution
-api {
-    endpoint = "{base_url}/{version}/users"
-    health_check = "{base_url}/health"
-}
+# Template expansion in values
+str api_url: https://api-{environment}-{region}.{domain}
+str log_path: /var/log/{environment}
 
-# Nested variable references
-database {
-    host = "db.example.com"
-    port = 5432
-    connection_string = "postgresql://{database.host}:{database.port}/myapp"
-}
+# Templates in struct instances
+Service:
+ *str name:
+  str url:
+  str log_file:
+  - auth, https://{name}-{environment}.{domain}, /logs/{environment}/{name}.log
+  - users, https://{name}-{environment}.{domain}, /logs/{environment}/{name}.log
+```
+
+### Arrays and Collections
+
+```tyco
+# Typed arrays
+str[] allowed_origins: [
+  https://app.example.com,
+  https://admin.example.com
+]
+
+int[] fibonacci: [1, 1, 2, 3, 5, 8, 13]
+
+# Mixed arrays with struct instances
+Server:
+ *str name:
+  int cores:
+  bool active:
+  - web1, 4, true
+  - web2, 8, false
+  - db1, 16, true
+
+# Array references
+str[] server_names: [web1, web2, db1]
 ```
 
 ## 🔧 API Reference
@@ -163,15 +193,15 @@ config = tyco.load('app.tyco')
 **Parameters:**
 - `filepath` (str | Path): Path to the Tyco configuration file
 
-**Returns:** Parsed configuration object with dot notation access
+**Returns:** Parsed configuration object with attribute access
 
 #### `tyco.loads(content)`
 Parse Tyco configuration from a string.
 
 ```python
 config_text = """
-app_name = "MyApp"
-port = 8080
+str app_name: MyApp
+int port: 8080
 """
 config = tyco.loads(config_text)
 ```
@@ -186,19 +216,18 @@ config = tyco.loads(config_text)
 ```python
 config = tyco.load('config.tyco')
 
-# Dot notation access
+# Access global variables
 app_name = config.app_name
-db_host = config.database.host
+port = config.port
 
-# Dictionary-style access
-port = config['server']['port']
+# Access struct instances (returns list)
+servers = config.Server  # All Server instances
+first_server = config.Server[0]  # First server
+server_names = [s.name for s in config.Server]  # Extract names
 
-# Array access
-first_server = config.servers[0]
-
-# Check if key exists
-if hasattr(config, 'optional_setting'):
-    value = config.optional_setting
+# Access specific fields
+db_host = config.Database[0].host
+api_url = config.Service[0].url  # Template expanded
 ```
 
 ## 🧪 Testing
@@ -214,10 +243,10 @@ python -m pytest --cov=tyco --cov-report=html
 ```
 
 ### Test Coverage
-- ✅ **Parsing**: All data types, structures, and syntax variants
-- ✅ **Templates**: Variable substitution and scope resolution  
-- ✅ **Error Handling**: Invalid syntax and type mismatches
-- ✅ **Edge Cases**: Empty files, complex nesting, special characters
+- ✅ **Type System**: All basic types, arrays, nullable types
+- ✅ **Structs**: Required/optional fields, instances, defaults
+- ✅ **Templates**: Variable substitution and nested references
+- ✅ **Edge Cases**: Complex nesting, special characters, error handling
 
 ## 📁 Project Structure
 
@@ -225,46 +254,51 @@ python -m pytest --cov=tyco --cov-report=html
 tyco-python/
 ├── tyco/
 │   ├── __init__.py          # Main API exports
-│   ├── parser.py            # Core parsing logic
+│   ├── parser.py            # Core parsing logic and classes
 │   └── tests/
 │       ├── __init__.py
 │       ├── test_parser.py   # Parser functionality tests
-│       └── test_load_features.py  # Load feature tests
+│       ├── test_load_features.py  # Load feature tests
+│       ├── inputs/          # Test Tyco files
+│       └── expected/        # Expected JSON outputs
 ├── pyproject.toml           # Project configuration
 ├── README.md               # This file
 └── LICENSE                 # MIT License
 ```
 
-## 🌟 Examples
+## �� Examples
 
 ### Web Application Configuration
 
 ```tyco
 # app.tyco
-environment = "production"
-debug = false
+str environment: production
+bool debug: false
+str secret_key: your-secret-key-here
 
-database {
-    host = "localhost"
-    port = 5432
-    name = "webapp"
-    pool_size = 20
-    url = "postgresql://{database.host}:{database.port}/{database.name}"
-}
+# Database configuration
+Database:
+ *str name:
+  str host:
+  int port:
+  str user:
+  str connection_string:
+  - main, db.example.com, 5432, webapp_user, postgresql://{user}@{host}:{port}/{name}
+  - cache, cache.example.com, 6379, cache_user, redis://{host}:{port}
 
-server {
-    host = "0.0.0.0" 
-    port = 8080
-    workers = 4
-}
+# Application servers  
+Server:
+ *str name:
+  str host:
+  int port:
+  int workers:
+  ?str description:
+  - web, 0.0.0.0, 8080, 4, "Main web server"
+  - api, 0.0.0.0, 8081, 2, "API server"
+  - worker, 127.0.0.1, 8082, 1
 
-redis {
-    host = "localhost"
-    port = 6379
-    db = 0
-}
-
-features = ["authentication", "caching", "analytics"]
+# Feature flags
+str[] enabled_features: [authentication, caching, analytics]
 ```
 
 ```python
@@ -274,55 +308,70 @@ import tyco
 config = tyco.load('app.tyco')
 
 # Use configuration
-print(f"Starting server on {config.server.host}:{config.server.port}")
-print(f"Database URL: {config.database.url}")
-print(f"Features enabled: {', '.join(config.features)}")
+print(f"Environment: {config.environment}")
+print(f"Debug mode: {config.debug}")
+
+# Database connection
+db = config.Database[0]  # Get first (main) database
+print(f"Database URL: {db.connection_string}")
+
+# Server configuration
+for server in config.Server:
+    print(f"Server {server.name}: {server.host}:{server.port} ({server.workers} workers)")
+
+# Feature flags
+if 'authentication' in config.enabled_features:
+    print("Authentication is enabled")
 ```
 
 ### Microservices Configuration
 
 ```tyco
 # services.tyco
-base_domain = "internal.company.com"
-common_timeout = 30.0
+str environment: staging
+str base_domain: internal.company.com
+int default_timeout: 30
 
-services {
-    auth {
-        host = "auth.{base_domain}"
-        port = 8001
-        timeout = {common_timeout}
-    }
-    
-    user {
-        host = "user.{base_domain}"  
-        port = 8002
-        timeout = {common_timeout}
-    }
-    
-    payment {
-        host = "payment.{base_domain}"
-        port = 8003
-        timeout = 60.0  # Override for longer operations
-    }
-}
+# Service definitions
+Service:
+ *str name:
+  str host:
+  int port:
+  int timeout:
+  str health_endpoint:
+  - auth, auth.{base_domain}, 8001, {default_timeout}, /health
+  - users, users.{base_domain}, 8002, {default_timeout}, /api/health  
+  - payments, payments.{base_domain}, 8003, 60, /status
+  - notifications, notifications.{base_domain}, 8004, {default_timeout}, /ping
 
-load_balancer {
-    upstream_servers = [
-        "{services.auth.host}:{services.auth.port}",
-        "{services.user.host}:{services.user.port}",
-        "{services.payment.host}:{services.payment.port}"
-    ]
-}
+# Load balancer configuration  
+LoadBalancer:
+ *str name:
+  str[] upstream_servers:
+  str algorithm:
+  - main, [
+      {Service[0].host}:{Service[0].port},
+      {Service[1].host}:{Service[1].port},
+      {Service[2].host}:{Service[2].port}
+    ], round_robin
+
+# Monitoring configuration
+Monitor:
+ *str service_name:
+  str endpoint:
+  int check_interval:
+  - auth_monitor, https://{Service[0].host}:{Service[0].port}{Service[0].health_endpoint}, 30
+  - user_monitor, https://{Service[1].host}:{Service[1].port}{Service[1].health_endpoint}, 30
 ```
 
 ## 🤝 Contributing
 
 We welcome contributions! The parser implementation follows these principles:
 
-1. **Clarity**: Code should be readable and well-documented
-2. **Reliability**: Comprehensive test coverage for all features  
+1. **Type Safety**: Strong type checking and validation
+2. **Clarity**: Clean, readable configuration syntax
 3. **Performance**: Efficient parsing for large configuration files
-4. **Compatibility**: Support for Python 3.8+ across all platforms
+4. **Reliability**: Comprehensive test coverage for all features
 
 ### Development Setup
 
