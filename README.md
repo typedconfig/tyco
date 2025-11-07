@@ -38,7 +38,7 @@ int timeout: 30
 
 # Database configuration struct
 Database:
- *str name:           # Required field (*)
+ *str name:           # Primary key field (*)
   str host:
   int port:
   str connection_string:
@@ -48,14 +48,14 @@ Database:
 
 # Server configuration struct  
 Server:
- *str name:
+ *str name:           # Primary key for referencing
   int port:
   str host:
-  ?str description:    # Optional field (?)
+  ?str description:    # Nullable field (?) - can be null
   # Server instances
   - web1, 8080, web1.example.com, "Primary web server"
-  - api1, 3000, api1.example.com
-  - worker1, 9000, worker1.example.com, "Background worker"
+  - api1, 3000, api1.example.com, null  # null description
+  - worker1, 9000, worker1.example.com
 
 # Feature flags array
 str[] features: [auth, analytics, caching]
@@ -66,18 +66,20 @@ str[] features: [auth, analytics, caching]
 ### 🎯 **Type Safety**
 - **Strong Type Annotations**: `str`, `int`, `float`, `bool`, `date`, `time`, `datetime`
 - **Array Types**: `int[]`, `str[]`, etc. for typed arrays
-- **Nullable Types**: `?str`, `?int` for optional fields
+- **Nullable Types**: `?str`, `?int` for fields that can be `null`
 - **Runtime Validation**: Type safety enforced during parsing
 
 ### 🏗️ **Structured Configuration**
 - **Struct Definitions**: Define reusable configuration structures
-- **Required/Optional Fields**: `*` for required, `?` for optional fields  
+- **Primary Key Fields**: `*` marks fields used for instance references
+- **Nullable Fields**: `?` allows fields to have `null` values
 - **Multiple Instances**: Create multiple instances of the same struct
-- **Nested References**: Access fields from other structs
+- **Cross-References**: Reference instances by their primary key values
 
 ### 🔧 **Template System**
 - **Variable Substitution**: Use `{variable}` syntax for dynamic values
 - **Nested References**: `{struct.field}` for complex relationships
+- **Global Access**: `{global.variable}` for explicit global scope
 - **Template Expansion**: Automatic resolution during parsing
 
 ### 🌐 **Cross-Platform**
@@ -105,33 +107,60 @@ datetime created_at: 2025-01-01 09:00:00Z
 str[] environments: [dev, staging, prod]
 int[] ports: [80, 443, 8080]
 
-# Nullable types
+# Nullable types (can be null)
 ?str description: null
 ?int backup_port: 8081
+?str[] optional_tags: [tag1, tag2]
 ```
 
 ### Struct Definitions
 
 ```tyco
-# Define a struct with required (*) and optional (?) fields
+# Define a struct with primary key (*) and nullable (?) fields
 User:
- *str username:        # Required field
-  str email:
- ?str full_name:       # Optional field
- ?int age: 25          # Optional with default
-  bool active: true    # Default value
+ *str username:        # Primary key field - used for references
+  str email:           # Required field
+ ?str full_name:       # Nullable field - can be null
+ ?int age:             # Nullable with explicit value
+  bool active: true    # Required field with default value
   # Create instances
   - admin, admin@example.com, "Administrator", 35, true
-  - user1, user1@example.com, "John Doe", 28
-  - guest, guest@example.com  # Uses defaults for optional fields
+  - user1, user1@example.com, "John Doe", 28, true
+  - guest, guest@example.com, null, null, false  # nulls for nullable fields
 
-# Nested struct references
+# Reference other struct instances using primary keys
 Project:
  *str name:
-  User owner:          # Reference to User struct
+  User owner:          # Reference to User struct by username
   str[] tags:
-  - webapp, User(admin), [frontend, react]
+  - webapp, User(admin), [frontend, react]    # References user "admin"
   - api, User(user1), [backend, python, fastapi]
+```
+
+### Primary Keys and References
+
+```tyco
+# Structs with primary keys can be referenced
+Host:
+ *str name:           # Single primary key
+  int cores:
+  bool enabled:
+  - web1, 4, true
+  - db1, 8, false
+
+Service:
+ *str name:
+ *str environment:    # Multiple primary keys
+  Host host:
+  int port:
+  - auth, production, Host(web1), 8001
+  - auth, staging, Host(db1), 8002
+
+# Reference by primary key values
+Deployment:
+ *str name:
+  Service service:
+  - prod_auth, Service(auth, production)  # References by both primary keys
 ```
 
 ### Template Variables
@@ -146,37 +175,45 @@ str domain: example.com
 str api_url: https://api-{environment}-{region}.{domain}
 str log_path: /var/log/{environment}
 
-# Templates in struct instances
+# Templates in struct instances with field access
 Service:
  *str name:
   str url:
   str log_file:
   - auth, https://{name}-{environment}.{domain}, /logs/{environment}/{name}.log
   - users, https://{name}-{environment}.{domain}, /logs/{environment}/{name}.log
+
+# Global scope access in templates
+Config:
+ *str key:
+  str value:
+  str message:
+  - region_key, {region}, "Region is {global.region}"
+  - env_key, {environment}, "Environment: {global.environment}"
 ```
 
-### Arrays and Collections
+### Nullable Values and Arrays
 
 ```tyco
-# Typed arrays
-str[] allowed_origins: [
-  https://app.example.com,
-  https://admin.example.com
-]
+# Nullable global values
+?str optional_config: null
+?str present_config: "I have a value"
 
-int[] fibonacci: [1, 1, 2, 3, 5, 8, 13]
+# Nullable arrays
+?int[] optional_numbers: null
+?str[] tags: [tag1, tag2, tag3]
 
-# Mixed arrays with struct instances
-Server:
- *str name:
-  int cores:
-  bool active:
-  - web1, 4, true
-  - web2, 8, false
-  - db1, 16, true
-
-# Array references
-str[] server_names: [web1, web2, db1]
+# Struct with nullable fields
+Resource:
+ *str id:
+  str name:
+ ?str description:     # Can be null
+ ?str[] labels:        # Nullable array
+ ?int priority:        # Nullable number
+  # Instances with null values
+  - res1, "Resource One", "A description", [prod, web], 10
+  - res2, "Resource Two", null, null, null  # All nullable fields are null
+  - res3, "Resource Three", null, [test], 5
 ```
 
 ## 🔧 API Reference
@@ -193,7 +230,7 @@ config = tyco.load('app.tyco')
 **Parameters:**
 - `filepath` (str | Path): Path to the Tyco configuration file
 
-**Returns:** Parsed configuration object with attribute access
+**Returns:** TycoContext object with attribute access
 
 #### `tyco.loads(content)`
 Parse Tyco configuration from a string.
@@ -209,7 +246,7 @@ config = tyco.loads(config_text)
 **Parameters:**
 - `content` (str): Tyco configuration content as string
 
-**Returns:** Parsed configuration object
+**Returns:** TycoContext object
 
 ### Configuration Access
 
@@ -228,6 +265,38 @@ server_names = [s.name for s in config.Server]  # Extract names
 # Access specific fields
 db_host = config.Database[0].host
 api_url = config.Service[0].url  # Template expanded
+
+# Handle nullable fields
+description = config.Server[0].description  # May be None
+if description is not None:
+    print(f"Server description: {description}")
+```
+
+### Working with References
+
+```tyco
+# Define structs with primary keys
+User:
+ *str username:
+  str email:
+  - alice, alice@example.com
+  - bob, bob@example.com
+
+Project:
+ *str name:
+  User owner:
+  - webapp, User(alice)  # Reference alice by username
+  - api, User(bob)       # Reference bob by username
+```
+
+```python
+# Access referenced objects
+config = tyco.load('config.tyco')
+
+# Get the project and its owner
+webapp = config.Project[0]  # First project
+owner = webapp.owner        # This is the actual User instance
+print(f"Project {webapp.name} owned by {owner.username} ({owner.email})")
 ```
 
 ## 🧪 Testing
@@ -244,7 +313,8 @@ python -m pytest --cov=tyco --cov-report=html
 
 ### Test Coverage
 - ✅ **Type System**: All basic types, arrays, nullable types
-- ✅ **Structs**: Required/optional fields, instances, defaults
+- ✅ **Structs**: Primary keys, nullable fields, instances, defaults
+- ✅ **References**: Primary key lookup and cross-references
 - ✅ **Templates**: Variable substitution and nested references
 - ✅ **Edge Cases**: Complex nesting, special characters, error handling
 
@@ -266,7 +336,7 @@ tyco-python/
 └── LICENSE                 # MIT License
 ```
 
-## �� Examples
+## 🌟 Examples
 
 ### Web Application Configuration
 
@@ -276,29 +346,35 @@ str environment: production
 bool debug: false
 str secret_key: your-secret-key-here
 
-# Database configuration
+# Database configuration with primary key
 Database:
- *str name:
+ *str name:               # Primary key for referencing
   str host:
   int port:
   str user:
+ ?str password:           # Nullable - can be null for security
   str connection_string:
-  - main, db.example.com, 5432, webapp_user, postgresql://{user}@{host}:{port}/{name}
-  - cache, cache.example.com, 6379, cache_user, redis://{host}:{port}
+  - main, db.example.com, 5432, webapp_user, null, postgresql://{user}@{host}:{port}/{name}
+  - cache, cache.example.com, 6379, cache_user, "secret123", redis://{host}:{port}
 
 # Application servers  
 Server:
- *str name:
+ *str name:               # Primary key
   str host:
   int port:
   int workers:
-  ?str description:
-  - web, 0.0.0.0, 8080, 4, "Main web server"
-  - api, 0.0.0.0, 8081, 2, "API server"
-  - worker, 127.0.0.1, 8082, 1
+ ?str description:        # Nullable description
+  Database database:      # Reference to Database by name
+  - web, 0.0.0.0, 8080, 4, "Main web server", Database(main)
+  - api, 0.0.0.0, 8081, 2, null, Database(main)  # null description
+  - worker, 127.0.0.1, 8082, 1, "Background worker", Database(cache)
 
-# Feature flags
+# Feature flags (non-nullable array)
 str[] enabled_features: [authentication, caching, analytics]
+
+# Optional configuration (nullable)
+?str[] optional_modules: [reporting, monitoring]
+?int max_connections: null
 ```
 
 ```python
@@ -311,20 +387,28 @@ config = tyco.load('app.tyco')
 print(f"Environment: {config.environment}")
 print(f"Debug mode: {config.debug}")
 
-# Database connection
-db = config.Database[0]  # Get first (main) database
-print(f"Database URL: {db.connection_string}")
-
-# Server configuration
+# Server configuration with references
 for server in config.Server:
-    print(f"Server {server.name}: {server.host}:{server.port} ({server.workers} workers)")
+    db = server.database  # This is the actual Database instance
+    desc = server.description or "No description"
+    print(f"Server {server.name}: {server.host}:{server.port}")
+    print(f"  Description: {desc}")
+    print(f"  Database: {db.name} at {db.host}:{db.port}")
+    
+    # Handle nullable database password
+    if db.password is not None:
+        print(f"  Database has password configured")
+    else:
+        print(f"  Database password is null (using other auth)")
 
-# Feature flags
-if 'authentication' in config.enabled_features:
-    print("Authentication is enabled")
+# Handle nullable configuration
+if config.optional_modules is not None:
+    print(f"Optional modules: {', '.join(config.optional_modules)}")
+else:
+    print("No optional modules configured")
 ```
 
-### Microservices Configuration
+### Microservices with Multi-Key References
 
 ```tyco
 # services.tyco
@@ -332,36 +416,40 @@ str environment: staging
 str base_domain: internal.company.com
 int default_timeout: 30
 
-# Service definitions
+# Services with compound primary key
 Service:
  *str name:
+ *str region:           # Multiple primary keys
   str host:
   int port:
   int timeout:
-  str health_endpoint:
-  - auth, auth.{base_domain}, 8001, {default_timeout}, /health
-  - users, users.{base_domain}, 8002, {default_timeout}, /api/health  
-  - payments, payments.{base_domain}, 8003, 60, /status
-  - notifications, notifications.{base_domain}, 8004, {default_timeout}, /ping
+ ?str health_endpoint:  # Nullable health check
+  - auth, us-east, auth-east.{base_domain}, 8001, {default_timeout}, /health
+  - auth, us-west, auth-west.{base_domain}, 8001, {default_timeout}, /health
+  - users, us-east, users-east.{base_domain}, 8002, {default_timeout}, null
+  - payments, us-east, payments-east.{base_domain}, 8003, 60, /status
 
-# Load balancer configuration  
+# Load balancer referencing services by compound keys
 LoadBalancer:
  *str name:
-  str[] upstream_servers:
+  Service[] upstream_services:  # Array of service references
   str algorithm:
-  - main, [
-      {Service[0].host}:{Service[0].port},
-      {Service[1].host}:{Service[1].port},
-      {Service[2].host}:{Service[2].port}
-    ], round_robin
+ ?int max_connections:          # Nullable configuration
+  - east_lb, [
+      Service(auth, us-east),
+      Service(users, us-east),
+      Service(payments, us-east)
+    ], round_robin, 1000
+  - west_lb, [Service(auth, us-west)], round_robin, null
 
-# Monitoring configuration
+# Monitoring with nullable fields
 Monitor:
  *str service_name:
-  str endpoint:
+  Service service:
+ ?str custom_endpoint:          # Override default health endpoint
   int check_interval:
-  - auth_monitor, https://{Service[0].host}:{Service[0].port}{Service[0].health_endpoint}, 30
-  - user_monitor, https://{Service[1].host}:{Service[1].port}{Service[1].health_endpoint}, 30
+  - auth_east_monitor, Service(auth, us-east), null, 30
+  - users_east_monitor, Service(users, us-east), /api/status, 30
 ```
 
 ## 🤝 Contributing
@@ -369,9 +457,10 @@ Monitor:
 We welcome contributions! The parser implementation follows these principles:
 
 1. **Type Safety**: Strong type checking and validation
-2. **Clarity**: Clean, readable configuration syntax
-3. **Performance**: Efficient parsing for large configuration files
-4. **Reliability**: Comprehensive test coverage for all features
+2. **Clarity**: Clean, readable configuration syntax  
+3. **Flexibility**: Support for complex referencing and nullable fields
+4. **Performance**: Efficient parsing for large configuration files
+5. **Reliability**: Comprehensive test coverage for all features
 
 ### Development Setup
 
@@ -388,13 +477,13 @@ pip install pytest pytest-cov
 python -m pytest
 ```
 
-## 📋 Requirements
+## �� Requirements
 
 - **Python**: 3.8 or higher
 - **Dependencies**: None (pure Python implementation)
 - **Operating Systems**: Linux, macOS, Windows
 
-## 🔗 Related Projects
+## �� Related Projects
 
 - **[Tyco C++](https://github.com/typedconfig/tyco-cpp)**: C++ implementation with hash map architecture
 - **[Tyco Web](https://github.com/typedconfig/web)**: Interactive playground and language documentation
