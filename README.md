@@ -65,11 +65,11 @@ Server:
  *str name:           # Primary key for referencing
   int port:
   str host:
-  ?str description: "N/A"   # Nullable field (?) - can be null
+  ?str description:   # Nullable field (?) - can be null
   # Server instances
-  - web1, 8080, web1.example.com, "Primary web server"
-  - api1, 3000, api1.example.com, null  # null description
-  - worker1, 9000, worker1.example.com
+  - web1,    8080, web1.example.com,    description: "Primary web server"
+  - api1,    3000, api1.example.com,    description: null
+  - worker1, 9000, worker1.example.com, description: "Worker number 1"
 
 # Feature flags array
 str[] features: [auth, analytics, caching]
