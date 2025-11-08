@@ -57,15 +57,15 @@ Database:
   int port:
   str connection_string:
   # Instances
-  - primary, localhost, 5432, postgresql://localhost:5432/myapp
-  - replica, replica-host, 5432, postgresql://replica-host:5432/myapp
+  - primary, localhost,    5432, "postgresql://localhost:5432/myapp"
+  - replica, replica-host, 5432, "postgresql://replica-host:5432/myapp"
 
 # Server configuration struct  
 Server:
  *str name:           # Primary key for referencing
   int port:
   str host:
-  ?str description:    # Nullable field (?) - can be null
+  ?str description: "N/A"   # Nullable field (?) - can be null
   # Server instances
   - web1, 8080, web1.example.com, "Primary web server"
   - api1, 3000, api1.example.com, null  # null description
