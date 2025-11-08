@@ -20,12 +20,26 @@ pip install tyco
 import tyco
 
 # Parse a Tyco configuration file
-config = tyco.load('config.tyco')
+context = tyco.load('config.tyco')
 
-# Access configuration values
-environment = config.environment
-servers = config.Server  # Access struct instances
-database_url = config.Database[0].connection_string
+# Access global configuration values
+globals = context.get_globals()
+environment = globals.environment
+debug = globals.debug
+timeout = globals.timeout
+
+# Get all instances as dictionaries
+objects = context.get_objects()
+databases = objects['Database']  # List of Database instances
+servers = objects['Server']      # List of Server instances
+
+# Access individual instance fields
+primary_db = databases[0]
+db_host = primary_db.host
+db_port = primary_db.port
+
+# Export to JSON
+json_data = context.to_json()
 ```
 
 ### Example Tyco File
