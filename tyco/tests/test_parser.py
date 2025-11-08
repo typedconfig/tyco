@@ -91,3 +91,23 @@ def test_number_formats(tmp_path):
 
 def test_edge_cases(tmp_path):
     _run_and_compare('edge_cases.tyco', 'edge_cases.json', tmp_path)
+
+
+def test_include_defaults_override(tmp_path):
+    """Test that defaults can be overridden in files that include others."""
+    # Need to copy both the override file and the base file it includes
+    base_src = INPUTS_DIR / 'include_defaults_base.tyco'
+    base_dst = tmp_path / 'include_defaults_base.tyco'
+    shutil.copy(base_src.resolve(), base_dst)
+    
+    _run_and_compare('include_defaults_override.tyco', 'include_defaults_override.json', tmp_path)
+
+
+def test_include_defaults_nooverride(tmp_path):
+    """Test that base defaults are used when not overridden."""
+    # Need to copy both the nooverride file and the base file it includes
+    base_src = INPUTS_DIR / 'include_defaults_base.tyco'
+    base_dst = tmp_path / 'include_defaults_base.tyco'
+    shutil.copy(base_src.resolve(), base_dst)
+    
+    _run_and_compare('include_defaults_nooverride.tyco', 'include_defaults_nooverride.json', tmp_path)

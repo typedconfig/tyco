@@ -78,7 +78,7 @@ class TycoLexer:
     GLOBAL_SCHEMA_REGEX = rf'([?])?{ire}(\[\])?\s+{ire}\s*:'
     STRUCT_BLOCK_REGEX  = rf'^{ire}:'
     STRUCT_SCHEMA_REGEX = rf'^\s+([*?])?{ire}(\[\])?\s+{ire}\s*:'
-    STRUCT_DEFAULTS_REGEX = r'\s+{ire}\s*:'
+    STRUCT_DEFAULTS_REGEX = rf'\s+{ire}\s*:'
     STRUCT_INSTANCE_REGEX = r'\s+-'
 
     @classmethod
@@ -210,7 +210,7 @@ class TycoLexer:
                 raise Exception(f'Can not add schema attributes after initial construction')
             line = self.lines.popleft()
             if match := re.match(self.STRUCT_DEFAULTS_REGEX, line):
-                attr_name = match.groups()
+                attr_name = match.groups()[0]
                 if attr_name not in struct.attr_types:
                     raise Exception(f'Setting invalid default of {attr_name} for {struct}')
                 default_text = line.split(':', maxsplit=1)[1].lstrip()
