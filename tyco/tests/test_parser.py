@@ -27,10 +27,15 @@ def run_in_process_typo_parser(path):
 
 def _run_and_compare(input_name, expected_name, tmp_path):
     src = ROOT / 'tests' / 'inputs' / input_name
+    # Resolve symlinks to get the actual file path
+    src = src.resolve()
     dst = tmp_path / input_name
     shutil.copy(src, dst)
     data = run_in_process_typo_parser(dst)
-    expected = json.loads((ROOT / 'tests' / 'expected' / expected_name).read_text())
+    expected_path = ROOT / 'tests' / 'expected' / expected_name
+    # Resolve symlinks for expected file too
+    expected_path = expected_path.resolve()
+    expected = json.loads(expected_path.read_text())
     assert data == expected
 
 
