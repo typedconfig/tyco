@@ -1,0 +1,236 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🧪 Test All Implementations",
+      "dependsOn": [
+        "Test Python",
+        "Test JavaScript", 
+        "Test Rust",
+        "Test Go"
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Test Python",
+      "type": "shell",
+      "command": "pytest",
+      "args": [
+        "-v",
+        "--tb=short"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:🐍 Tyco Python}"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test JavaScript",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder:🟨 Tyco JavaScript}"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test Rust",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["test", "--", "--nocapture"],
+      "options": {
+        "cwd": "${workspaceFolder:🦀 Tyco Rust}"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test Go",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "-v", "./..."],
+      "options": {
+        "cwd": "${workspaceFolder:🐹 Tyco Go}"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📊 Compare Test Coverage",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo '=== Python Coverage ===' && cd ${workspaceFolder:🐍 Tyco Python} && pytest --cov=tyco --cov-report=term-missing || true; echo '\n=== JavaScript Coverage ===' && cd ${workspaceFolder:🟨 Tyco JavaScript} && npm run coverage || true; echo '\n=== Rust Coverage ===' && cd ${workspaceFolder:🦀 Tyco Rust} && cargo tarpaulin || true"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔄 Sync Test Suite",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder:📋 Shared Test Suite}/sync-tests.sh"
+      ],
+      "group": "none",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🏗️ Build All",
+      "dependsOn": [
+        "Build Python",
+        "Build JavaScript",
+        "Build Rust",
+        "Build Go"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build Python",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "build"],
+      "options": {
+        "cwd": "${workspaceFolder:🐍 Tyco Python}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build JavaScript",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "options": {
+        "cwd": "${workspaceFolder:🟨 Tyco JavaScript}"
+      },
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Build Rust",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build", "--release"],
+      "options": {
+        "cwd": "${workspaceFolder:🦀 Tyco Rust}"
+      },
+      "group": "build",
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Build Go",
+      "type": "shell",
+      "command": "go",
+      "args": ["build", "-v", "./..."],
+      "options": {
+        "cwd": "${workspaceFolder:🐹 Tyco Go}"
+      },
+      "group": "build",
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "🔍 Lint All",
+      "dependsOn": [
+        "Lint Python",
+        "Lint JavaScript",
+        "Lint Rust",
+        "Lint Go"
+      ]
+    },
+    {
+      "label": "Lint Python",
+      "type": "shell",
+      "command": "pylint",
+      "args": ["tyco"],
+      "options": {
+        "cwd": "${workspaceFolder:🐍 Tyco Python}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint JavaScript",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "options": {
+        "cwd": "${workspaceFolder:🟨 Tyco JavaScript}"
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Lint Rust",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["clippy", "--", "-D", "warnings"],
+      "options": {
+        "cwd": "${workspaceFolder:🦀 Tyco Rust}"
+      },
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Lint Go",
+      "type": "shell",
+      "command": "golangci-lint",
+      "args": ["run"],
+      "options": {
+        "cwd": "${workspaceFolder:🐹 Tyco Go}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
