@@ -6,6 +6,16 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Support both local symlinks (for development) and submodule (for CI/production)
+# Try symlinks first, fall back to submodule
+INPUTS_DIR = ROOT / 'tests' / 'inputs'
+EXPECTED_DIR = ROOT / 'tests' / 'expected'
+
+if not INPUTS_DIR.exists() or INPUTS_DIR.is_symlink():
+    # Use submodule paths
+    INPUTS_DIR = ROOT / 'tests' / 'shared' / 'inputs'
+    EXPECTED_DIR = ROOT / 'tests' / 'shared' / 'expected'
+
 
 def run_in_process_typo_parser(path):
     """Import parser classes and run the lexer/parser in-process.
@@ -26,13 +36,13 @@ def run_in_process_typo_parser(path):
 
 
 def _run_and_compare(input_name, expected_name, tmp_path):
-    src = ROOT / 'tests' / 'inputs' / input_name
+    src = INPUTS_DIR / input_name
     # Resolve symlinks to get the actual file path
     src = src.resolve()
     dst = tmp_path / input_name
     shutil.copy(src, dst)
     data = run_in_process_typo_parser(dst)
-    expected_path = ROOT / 'tests' / 'expected' / expected_name
+    expected_path = EXPECTED_DIR / expected_name
     # Resolve symlinks for expected file too
     expected_path = expected_path.resolve()
     expected = json.loads(expected_path.read_text())

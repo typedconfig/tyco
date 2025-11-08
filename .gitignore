@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Local symlinks to shared test suite (use submodule for production)
+tyco/tests/inputs
+tyco/tests/expected
+
 # Distribution / packaging
 .Python
 build/

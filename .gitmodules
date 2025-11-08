@@ -1,0 +1,3 @@
+[submodule "tyco/tests/shared"]
+	path = tyco/tests/shared
+	url = https://github.com/typedconfig/tyco-test-suite.git
