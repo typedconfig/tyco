@@ -19,3 +19,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://typedconfig.io"
 Repository = "https://github.com/typedconfig/tyco-python"
+
+[project.scripts]
+tyco = "tyco.cli:main"
