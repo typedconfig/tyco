@@ -54,9 +54,9 @@ class TycoParseError(Exception):
             location_parts.append(f'File "{self.source}"')
         if self.row is not None:
             if self.col is not None:
-                location_parts[-1] += f', line {self.row}, column {self.col}'
+                location_parts[-1] += f', line {self.row}, column {self.col}:'
             else:
-                location_parts[-1] += f', line {self.row}'
+                location_parts[-1] += f', line {self.row}:'
         
         if location_parts:
             parts.append('  ' + location_parts[0])
