@@ -47,7 +47,7 @@ class TycoParseError(Exception):
 
     def __str__(self):
         parts = []
-        
+
         # Build location string
         location_parts = []
         if self.source:
@@ -57,10 +57,10 @@ class TycoParseError(Exception):
                 location_parts[-1] += f', line {self.row}, column {self.col}:'
             else:
                 location_parts[-1] += f', line {self.row}:'
-        
+
         if location_parts:
             parts.append('  ' + location_parts[0])
-        
+
         # Add source line with context if available
         if self.source_lines and self.row is not None:
             # Show the problematic line
@@ -68,7 +68,7 @@ class TycoParseError(Exception):
             if 0 <= line_idx < len(self.source_lines):
                 line = self.source_lines[line_idx].rstrip('\n')
                 parts.append(f'    {line}')
-                
+
                 # Add caret/arrow pointer if we have column info
                 if self.col is not None and self.col > 0:
                     # Calculate visual position accounting for tabs
@@ -80,14 +80,14 @@ class TycoParseError(Exception):
                             visual_col = (visual_col // 8 + 1) * 8  # Tab to next 8-char boundary
                         else:
                             visual_col += 1
-                    
+
                     # Build the pointer line
                     pointer = ' ' * (4 + visual_col) + '^'
                     parts.append(pointer)
-        
+
         # Add the error message
         parts.append(f'{self.__class__.__name__}: {self.message}')
-        
+
         return '\n'.join(parts)
 
 
@@ -252,7 +252,7 @@ def _coerce_lines(lines, *, source=None, start_row=1):
 def _raise_parse_error(message, fragment=None, *, source=None, row=None, col=None, source_lines=None):
     """
     Raise a TycoParseError with source location and cached source lines.
-    
+
     Can be called with either:
     - fragment (legacy): SourceString or str with error location
     - row/col/source_lines (new): Direct location with cached source for better formatting
@@ -265,7 +265,7 @@ def _raise_parse_error(message, fragment=None, *, source=None, row=None, col=Non
             col = fragment.col
             source_lines = getattr(fragment, 'source_lines', None) or source_lines
         # For plain strings, we don't have location info
-    
+
     raise TycoParseError(message, source=source, row=row, col=col, source_lines=source_lines)
 
 
@@ -349,7 +349,7 @@ class TycoLexer:
                 continue
             elif not strip_comments(line):
                 continue
-            self._parse_error(line, 'Malformatted config file')
+            self._parse_error(line, 'Malformatted config line - expecting an include, struct block, or global')
 
     def _load_global(self, line, match):
         options, type_name, array_flag, attr_name = match.groups()
@@ -380,7 +380,7 @@ class TycoLexer:
                 continue
             if not (match := re.match(self.STRUCT_SCHEMA_REGEX, content)):
                 if re.match(r'\s+\w+\s+\w+', content):
-                    self._parse_error(content, 'Schema attribute missing trailing colon')
+                    self._parse_error(content, 'Schema attribute likely missing trailing colon')
                 break
             line = self.lines.popleft()
             options, type_name, array_flag, attr_name = match.groups()
@@ -420,7 +420,7 @@ class TycoLexer:
             if match := re.match(self.STRUCT_DEFAULTS_REGEX, line):
                 attr_name = match.groups()[0]
                 if attr_name not in struct.attr_types:
-                    self._parse_error(line, f'Setting invalid default of {attr_name} for {struct}')
+                    self._parse_error(line, f'{attr_name} not found in the schema for {struct}')
                 default_text = line.split(':', maxsplit=1)[1].lstrip()
                 if strip_comments(default_text):
                     self.lines.appendleft(default_text)
@@ -464,7 +464,7 @@ class TycoLexer:
         bad_delim = set(bad_delim) | set('()[],') - set(good_delim)
         if not self.lines:
             raise TycoParseError('Syntax error: no content found', source=self.path)
-        if match := re.match(rf'{self.ire}\s*:\s*', self.lines[0]):     # need to exclude times w/ colons
+        if match := re.match(rf'{self.ire}\s*:\s*', self.lines[0]):     # times don't match this regex
             if attr_name is not None:
                 self._parse_error(self.lines[0], f'Colon : found in content - enclose in quotes to prevent being used as a field name: {match.groups()[0]}', column_offset=match.start())
             attr_name = match.groups()[0]
@@ -514,7 +514,7 @@ class TycoLexer:
                 delim = os.linesep                      # handles the case where we only have trailing comments
                 self.lines[0] = ''
                 return delim
-            self._parse_error(self.lines[0], f'Should have found next delimiter {good_delim}')
+            self._parse_error(self.lines[0], f'Unabled to find expected delimiter: {good_delim}')
         delim = match.group()
         start, end = match.span()
         self.lines[0] = self.lines[0][end:]
@@ -525,10 +525,10 @@ class TycoLexer:
         all_delim = list(good_delim) + list(bad_delim)
         delim_regex = '|'.join(re.escape(d) for d in all_delim)
         if not (match := re.search(delim_regex, all_content)):
-            self._parse_error(self.lines[0], f'Should have found some delimiter {all_delim}')
+            self._parse_error(self.lines[0], f'Unable to find expected delimiter: {good_delim}')
         delim = match.group()
         if delim in bad_delim:
-            self._parse_error(self.lines[0], f'Unexpected delimiter {delim!r}')
+            self._parse_error(self.lines[0], f'Delimiter character {delim!r} found - enclose with quotes if correct')
         start, end = match.span()
         text = all_content[:start]
         attr = TycoValue(self.context, text)
@@ -542,7 +542,7 @@ class TycoLexer:
         while True:
             if not self.lines:
                 _raise_parse_error(
-                    f"Unterminated list; expected '{closing_char}' before end of file",
+                    f"Unterminated list; expected '{closing_char!r}' before end of file",
                     source=self.path,
                 )
             if not strip_comments(self.lines[0]):                       # can have newlines within the array
@@ -564,7 +564,7 @@ class TycoLexer:
         while True:
             if not self.lines:
                 _raise_parse_error(
-                    'Unterminated triple-quoted string',
+                    'Unterminated triple-quoted {triple} string',
                     fragment=opening_fragment,
                     source=self.path,
                 )
@@ -596,7 +596,7 @@ class TycoLexer:
         final_content = ''.join(all_contents)
         if invalid := set(final_content) & ILLEGAL_STR_CHARS_MULTILINE:
             _raise_parse_error(
-                f'Literal multiline strings must not contain control characters (found {invalid})',
+                f'Literal multiline strings must not contain control characters (found {invalid!r})',
                 fragment=final_content,
                 source=self.path,
             )
@@ -611,7 +611,7 @@ class TycoLexer:
             end = line.find(ch, start)
             if end == -1:
                 _raise_parse_error(
-                    f'Unterminated string literal (missing closing {ch})',
+                    f'Unterminated string literal (missing closing quote {ch})',
                     fragment=opening_fragment,
                     source=self.path,
                 )
@@ -623,7 +623,7 @@ class TycoLexer:
         remainder = line[end:]
         if invalid := set(final_content) & ILLEGAL_STR_CHARS:
             _raise_parse_error(
-                f'Literal strings may not contain control characters (found {invalid})',
+                f'Literal strings may not contain control characters (found {invalid!r})',
                 fragment=final_content,
                 source=self.path,
             )
@@ -797,7 +797,7 @@ class TycoStruct:
             if self.primary_keys:
                 fragment = inst_kwargs[self.primary_keys[0]].fragment
             _raise_parse_error(
-                f"{self.type_name} with primary key {key} was referenced before it was defined",
+                f"{self.type_name}{key!r} is referenced, but instance can not be found",
                 fragment=fragment,
                 source=self.context._path_cache and list(self.context._path_cache)[-1],
             )
@@ -853,6 +853,8 @@ class TycoInstance:
         return inst
 
     def apply_schema_info(self, **kwargs):
+        if 'attr_name' in kwargs:
+            setattr(self, 'attr_name', kwargs.pop('attr_name'))         # set first so that the error is more helpful below
         for attr, val in kwargs.items():
             if attr == 'type_name' and self.type_name != val:
                 fragment = self.fragment
@@ -954,7 +956,7 @@ class TycoReference:                    # Lazy container class to refer to insta
             if attr == 'type_name' and self.type_name != val:
                 fragment = self.fragment
                 _raise_parse_error(
-                    f"Reference for '{self.attr_name}' expects type '{val}', but '{self.type_name}' was referenced",
+                    f"Reference for '{self.attr_name}' expects type '{val}', but '{self.type_name}' was given",
                     fragment=fragment,
                     source=getattr(fragment, 'source', None),
                 )
@@ -962,7 +964,7 @@ class TycoReference:                    # Lazy container class to refer to insta
         if self.is_array is True:
             fragment = self.fragment
             _raise_parse_error(
-                f"Reference for '{self.attr_name}' is declared as a list, but a single reference was provided",
+                f"Reference for '{self.attr_name}' is declared as a list, but a reference was given",
                 fragment=fragment,
                 source=getattr(fragment, 'source', None),
             )
@@ -1007,7 +1009,7 @@ class TycoReference:                    # Lazy container class to refer to insta
         return self.rendered.to_json()
 
     def __str__(self):
-        return f'TycoReference({self.type_name}, {self.inst_args}, {self.rendered})'     # TODO make better
+        return f'TycoReference({self.type_name}, {self.inst_args}, {self.rendered})'
 
     def __repr__(self):
         return self.__str__()
@@ -1039,8 +1041,8 @@ class TycoArray:
             i.apply_schema_info(**kwargs)
         if self.is_array is False:
             self._error(
-                f"Field '{self.attr_name}' is declared as a single value, but a list was provided. "
-                f"Add [] to the schema definition if '{self.attr_name}' should accept multiple values."
+                f"The schema for '{self.attr_name}' does not indicate this is an array."
+                f"Append [] to the schema definition if '{self.attr_name}' should be an array."
             )
 
     def set_parent(self, parent):
@@ -1125,11 +1127,9 @@ class TycoValue:
         for attr, val in kwargs.items():
             setattr(self, attr, val)
         if self.is_array is True and not (self.is_nullable is True and self.content == 'null'):
-            self._error(f"Expected a singular value for '{self.attr_name}', but found an array")
+            self._error(f"Schema indicates that this should be an array, but found a single value for '{self.attr_name}'")
         if self.type_name is not None and self.type_name not in self.base_types:
-            self._error(
-                f"'{self.content}' must be referenced using {self.type_name}(...); implicit conversion isn't allowed"
-            )
+            self._error(f"Invalid {self.type_name} type - must be one of: {self.base_types}")
 
     def set_parent(self, parent):
         self.parent = parent
@@ -1257,11 +1257,7 @@ class TycoValue:
             return self.rendered
 
     def __str__(self):
-        text = f'TycoValue({self.type_name}, {self.content}'
-        if self.rendered is not self._unrendered:
-            text += f', {self.rendered}'
-        text += ')'
-        return text
+        return f'TycoValue({self.type_name}, {self.content}, {self.rendered})'
 
     def __repr__(self):
         return self.__str__()
