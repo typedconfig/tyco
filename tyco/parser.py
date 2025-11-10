@@ -327,7 +327,6 @@ class TycoLexer:
                         rel_dir = os.path.dirname(self.path)
                     path = os.path.join(rel_dir, path)
                 lexer = self.__class__.from_path(self.context, path)
-                lexer.process()
                 for type_name, attr_defaults in lexer.defaults.items():
                     if type_name in self.defaults:
                         raise TycoParseError(
@@ -1300,7 +1299,6 @@ def load(path):
         paths = [str(path)]
     for path in paths:
         lexer = TycoLexer.from_path(context, path)
-        lexer.process()
     context._render_content()
     return context
 
