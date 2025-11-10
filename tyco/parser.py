@@ -301,8 +301,8 @@ class TycoLexer:
                 lines = list(f.readlines())
             lines = _coerce_lines(lines, source=path)
             lexer = cls(context, lines, path)
-            lexer.process()
             context._path_cache[path] = lexer
+            lexer.process()
         return context._path_cache[path]
 
     def __init__(self, context, lines, path=None):
@@ -1042,7 +1042,7 @@ class TycoArray:
         if self.is_array is False:
             self._error(
                 f"The schema for '{self.attr_name}' does not indicate this is an array."
-                f"Append [] to the schema definition if '{self.attr_name}' should be an array."
+                f" Append [] to the schema definition if '{self.attr_name}' should be an array."
             )
 
     def set_parent(self, parent):
