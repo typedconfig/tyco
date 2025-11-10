@@ -12,6 +12,7 @@ import datetime
 import itertools
 import importlib
 import collections
+from typing import Union
 
 
 __all__ = ['Struct', 'load', 'loads', 'TycoException', 'TycoParseError']
@@ -36,17 +37,19 @@ EOL_REGEX = r'\s*(?:#.*)?' + re.escape(os.linesep)
 
 
 class TycoException(Exception):
-    pass
+    """Base exception for all errors raised by the Tyco configuration parser."""
 
 
 class TycoParseError(TycoException):
 
-    def __init__(self, message, fragment):
+    """Exception raised when a Tyco document cannot be parsed successfully."""
+
+    def __init__(self, message: str, fragment: 'SourceString') -> None:
         super().__init__(message)
         self.message = message
         self.fragment = fragment            # SourceString()
 
-    def __str__(self):
+    def __str__(self) -> str:
         fragment = self.fragment
         if not isinstance(fragment, SourceString):
             return f'{self.__class__.__name__}: {self.message}'
@@ -229,6 +232,8 @@ class TycoLexer:
     @classmethod
     def from_path(cls, context, path):
         if path not in context._path_cache:
+            if not os.path.exists(path):
+                raise TycoException(f'Unable to find path {path}')
             if not os.path.isfile(path):
                 raise TycoException(f'Can only load path if it is a regular file: {path}')
             base_filename = path
@@ -250,6 +255,14 @@ class TycoLexer:
             context._path_cache[path] = lexer
             lexer.process()
         return context._path_cache[path]
+
+    @classmethod
+    def from_string(cls, context, content):
+        lines = content.splitlines(keepends=True)
+        lexer = TycoLexer(context, lines, path='<string>')
+        context._path_cache[id(lexer)] = lexer
+        lexer.process()
+        return lexer
 
     def __init__(self, context, source_lines, path):
         self.context = context
@@ -326,13 +339,14 @@ class TycoLexer:
                 if is_array:
                     raise TycoParseError('Cannot set a primary key on an array', line)
                 struct.primary_keys.append(attr_name)
-            elif options == '?':
+            elif (is_nullable := options == '?'):
                 struct.nullable_keys.add(attr_name)
             default_text = line.split(':', maxsplit=1)[1].lstrip()
             default_content = strip_comments(default_text)
             if default_content:
                 self.lines.appendleft(default_text)
                 attr, delim = self._load_tyco_attr(attr_name=attr_name)
+                attr.apply_schema_info(type_name=type_name, attr_name=attr_name, is_nullable=is_nullable, is_array=is_array)
                 self.defaults[struct.type_name][attr_name] = attr
 
     def _load_local_defaults_and_instances(self, struct):
@@ -358,6 +372,10 @@ class TycoLexer:
                 if strip_comments(default_text):
                     self.lines.appendleft(default_text)
                     attr, delim = self._load_tyco_attr(attr_name=attr_name)
+                    type_name = struct.attr_types[attr_name]
+                    is_nullable = attr_name in struct.nullable_keys
+                    is_array = attr_name in struct.array_keys
+                    attr.apply_schema_info(type_name=type_name, attr_name=attr_name, is_nullable=is_nullable, is_array=is_array)
                     self.defaults[struct.type_name][attr_name] = attr
                 else:
                     self.defaults[struct.type_name].pop(attr_name, None)          # if empty remove previous defaults
@@ -558,6 +576,10 @@ class TycoContext:
                 inst.set_parent()
 
     def _render_base_content(self):
+        for lexer in self._path_cache.values():
+            for type_name, attrs in lexer.defaults.items():     # we render defaults even if they don't get used
+                for attr_name, attr in attrs.items():
+                    attr.render_base_content()
         for attr_name, attr in self._globals.items():
             attr.render_base_content()
         for struct in self._structs.values():
@@ -569,6 +591,10 @@ class TycoContext:
             struct.load_primary_keys()
 
     def _render_references(self):
+        for lexer in self._path_cache.values():
+            for type_name, attrs in lexer.defaults.items():     # we render defaults even if they don't get used
+                for attr_name, attr in attrs.items():
+                    attr.render_references()
         for attr_name, attr in self._globals.items():
             attr.render_references()
         for struct in self._structs.values():
@@ -1099,6 +1125,8 @@ class TycoValue:
 
 class Struct(types.SimpleNamespace):
 
+    """Base class for user-defined objects materialized from Tyco configuration data."""
+
     registry = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -1120,7 +1148,15 @@ class Struct(types.SimpleNamespace):
         pass
 
 
-def load(path):
+def load(path: Union[str, pathlib.Path]) -> 'TycoContext':
+    """
+    Load Tyco configuration from disk and return the rendered context.
+
+    If `path` is a directory every `*.tyco` file beneath it (recursively) is
+    parsed; if it is a single file only that document is processed.  The
+    returned context can be interrogated for globals, structs, JSON, or
+    converted into concrete Python objects.
+    """
     context = TycoContext()
     if os.path.isdir(path):
         dir_path = pathlib.Path(path)
@@ -1128,15 +1164,19 @@ def load(path):
     else:
         paths = [str(path)]
     for path in paths:
-        lexer = TycoLexer.from_path(context, path)
+        TycoLexer.from_path(context, path)
     context._render_content()
     return context
 
 
-def loads(content):
+def loads(content: str) -> 'TycoContext':
+    """
+    Parse Tyco configuration provided as a string and return the context.
+
+    This helper mirrors :func:`load` but avoids touching the filesystem,
+    which is useful in tests or when generating configuration dynamically.
+    """
     context = TycoContext()
-    lines = content.splitlines(keepends=True)
-    lexer = TycoLexer(context, lines, path='<string>')
-    lexer.process()
+    TycoLexer.from_string(context, content)
     context._render_content()
     return context
