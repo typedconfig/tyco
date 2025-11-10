@@ -781,24 +781,6 @@ class TycoStruct:
     def __repr__(self):
         return self.__str__()
 
-    def _error(self, message):
-        fragment = self.fragment
-        if fragment is None:
-            for item in self.content:
-                if getattr(item, 'fragment', None):
-                    fragment = item.fragment
-                    break
-        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
-
-    def _error(self, message):
-        fragment = None
-        for arg in self.inst_args:
-            if getattr(arg, 'fragment', None):
-                fragment = arg.fragment
-                break
-        fragment = fragment or self.fragment
-        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
-
 
 class TycoInstance:
 
@@ -879,6 +861,16 @@ class TycoInstance:
     def __repr__(self):
         return self.__str__()
 
+    def _error(self, message):
+        fragment = self.fragment
+        if fragment is None:
+            for attr in self.inst_kwargs.values():
+                attr_fragment = getattr(attr, 'fragment', None)
+                if attr_fragment is not None:
+                    fragment = attr_fragment
+                    break
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
+
 
 class TycoReference:                    # Lazy container class to refer to instances
 
@@ -935,6 +927,15 @@ class TycoReference:                    # Lazy container class to refer to insta
 
     def render_templates(self):
         pass
+
+    def _error(self, message):
+        fragment = None
+        for arg in self.inst_args:
+            if getattr(arg, 'fragment', None):
+                fragment = arg.fragment
+                break
+        fragment = fragment or self.fragment
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
 
     def __getitem__(self, attr_name):
         return self.rendered[attr_name]
@@ -1022,6 +1023,15 @@ class TycoArray:
 
     def __repr__(self):
         return self.__str__()
+
+    def _error(self, message):
+        fragment = self.fragment
+        if fragment is None:
+            for item in self.content:
+                if getattr(item, 'fragment', None):
+                    fragment = item.fragment
+                    break
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
 
 
 class TycoValue:
