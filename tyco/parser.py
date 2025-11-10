@@ -37,30 +37,58 @@ EOL_REGEX = r'\s*(?:#.*)?' + re.escape(os.linesep)
 
 class TycoParseError(Exception):
 
-    def __init__(self, message, *, source=None, row=None, col=None, line=None):
+    def __init__(self, message, *, source=None, row=None, col=None, source_lines=None):
         super().__init__(message)
         self.message = message
         self.source = source
         self.row = row
         self.col = col
-        self.line = line.rstrip('\n') if line else None
+        self.source_lines = source_lines
 
     def __str__(self):
+        parts = []
+        
+        # Build location string
         location_parts = []
         if self.source:
-            location_parts.append(str(self.source))
+            location_parts.append(f'File "{self.source}"')
         if self.row is not None:
             if self.col is not None:
-                location_parts.append(f'{self.row}:{self.col}')
+                location_parts[-1] += f', line {self.row}:{self.col}'
             else:
-                location_parts.append(str(self.row))
-        location = ':'.join(location_parts) if location_parts else None
-        base = self.message
-        if location:
-            base = f'{location} - {base}'
-        if self.line:
-            base = f'{base}\n    {self.line}'
-        return base
+                location_parts[-1] += f', line {self.row}'
+        
+        if location_parts:
+            parts.append('  ' + location_parts[0])
+        
+        # Add source line with context if available
+        if self.source_lines and self.row is not None:
+            # Show the problematic line
+            line_idx = self.row - 1
+            if 0 <= line_idx < len(self.source_lines):
+                line = self.source_lines[line_idx].rstrip('\n')
+                parts.append(f'    {line}')
+                
+                # Add caret/arrow pointer if we have column info
+                if self.col is not None and self.col > 0:
+                    # Calculate visual position accounting for tabs
+                    visual_col = 0
+                    for i, ch in enumerate(line):
+                        if i >= self.col - 1:
+                            break
+                        if ch == '\t':
+                            visual_col = (visual_col // 8 + 1) * 8  # Tab to next 8-char boundary
+                        else:
+                            visual_col += 1
+                    
+                    # Build the pointer line
+                    pointer = ' ' * (4 + visual_col) + '^'
+                    parts.append(pointer)
+        
+        # Add the error message
+        parts.append(f'{self.__class__.__name__}: {self.message}')
+        
+        return '\n'.join(parts)
 
 
 class SourceString(str):
@@ -221,17 +249,24 @@ def _coerce_lines(lines, *, source=None, start_row=1):
     return coerced
 
 
-def _raise_parse_error(message, fragment=None, *, source=None):
-    row = col = None
-    line = None
-    if isinstance(fragment, SourceString):
-        source = fragment.source or source
-        row = fragment.row
-        col = fragment.col
-        line = str(fragment).rstrip('\n')
-    elif isinstance(fragment, str):
-        line = fragment.rstrip('\n')
-    raise TycoParseError(message, source=source, row=row, col=col, line=line)
+def _raise_parse_error(message, fragment=None, *, source=None, row=None, col=None, source_lines=None):
+    """
+    Raise a TycoParseError with source location and cached source lines.
+    
+    Can be called with either:
+    - fragment (legacy): SourceString or str with error location
+    - row/col/source_lines (new): Direct location with cached source for better formatting
+    """
+    if fragment:
+        # Legacy path: extract from fragment
+        if isinstance(fragment, SourceString):
+            source = fragment.source or source
+            row = fragment.row
+            col = fragment.col
+            source_lines = getattr(fragment, 'source_lines', None) or source_lines
+        # For plain strings, we don't have location info
+    
+    raise TycoParseError(message, source=source, row=row, col=col, source_lines=source_lines)
 
 
 class TycoLexer:
@@ -277,6 +312,8 @@ class TycoLexer:
         self.num_lines = len(lines)
         self.defaults = {}       # {type_name : {attr_name : TycoInstance|TycoValue|TycoArray|TycoReference}}
         self.source = path
+        # Cache the full source as a list for error reporting
+        self.source_lines = [str(line) for line in lines]
 
     def process(self):
         while self.lines:
@@ -411,11 +448,17 @@ class TycoLexer:
                 struct.create_instance(inst_args, self.defaults[struct.type_name])
 
     def _parse_error(self, line, message, column_offset=0):
+        """Raise a parse error with proper source location."""
         if isinstance(line, SourceString):
-            fragment = line[column_offset:]
+            _raise_parse_error(
+                message,
+                source=line.source or self.path,
+                row=line.row,
+                col=line.col + column_offset if line.col is not None else None,
+                source_lines=self.source_lines
+            )
         else:
-            fragment = line
-        _raise_parse_error(message, fragment=fragment, source=self.path)
+            _raise_parse_error(message, source=self.path, source_lines=self.source_lines)
 
     def _load_tyco_attr(self, good_delim=(os.linesep,), bad_delim='', pop_empty_lines=True, attr_name=None):
         bad_delim = set(bad_delim) | set('()[],') - set(good_delim)
@@ -591,17 +634,25 @@ class TycoLexer:
 class TycoContext:
 
     def __init__(self):
-        self._path_cache = {}       # {path : TycoPath()}
+        self._path_cache = {}       # {path : TycoLexer()}
         self._structs    = {}       # {type_name : TycoStruct()}
         self._globals    = {}       # {attr_name : TycoValue|TycoInstance|TycoArray|TycoReference}
+
+    def _get_source_lines(self, source_path):
+        """Get cached source lines for a given path, if available."""
+        if source_path in self._path_cache:
+            return self._path_cache[source_path].source_lines
+        return None
 
     def _set_global_attr(self, attr_name, attr):
         if attr_name in self._globals:
             fragment = getattr(attr, 'fragment', None)
+            source_lines = self._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
             _raise_parse_error(
                 f"Global attribute '{attr_name}' is defined more than once",
                 fragment=fragment or attr_name,
                 source=getattr(attr, 'source', None),
+                source_lines=source_lines,
             )
         self._globals[attr_name] = attr
 
@@ -805,18 +856,22 @@ class TycoInstance:
         for attr, val in kwargs.items():
             if attr == 'type_name' and self.type_name != val:
                 fragment = self.fragment
+                source_lines = self.context._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
                 _raise_parse_error(
                     f"Field '{self.attr_name}' expects an instance of '{val}', but '{self.type_name}' was provided",
                     fragment=fragment,
                     source=getattr(fragment, 'source', None),
+                    source_lines=source_lines,
                 )
             setattr(self, attr, val)
         if self.is_array is True:
             fragment = self.fragment
+            source_lines = self.context._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
             _raise_parse_error(
                 f"Field '{self.attr_name}' is declared as a list, but an object was provided",
                 fragment=fragment,
                 source=getattr(fragment, 'source', None),
+                source_lines=source_lines,
             )
 
     def set_parent(self, parent=None):
@@ -869,7 +924,8 @@ class TycoInstance:
                 if attr_fragment is not None:
                     fragment = attr_fragment
                     break
-        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
+        source_lines = self.context._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None), source_lines=source_lines)
 
 
 class TycoReference:                    # Lazy container class to refer to instances
@@ -935,7 +991,8 @@ class TycoReference:                    # Lazy container class to refer to insta
                 fragment = arg.fragment
                 break
         fragment = fragment or self.fragment
-        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
+        source_lines = self.context._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None), source_lines=source_lines)
 
     def __getitem__(self, attr_name):
         return self.rendered[attr_name]
@@ -1031,7 +1088,8 @@ class TycoArray:
                 if getattr(item, 'fragment', None):
                     fragment = item.fragment
                     break
-        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None))
+        source_lines = self.context._get_source_lines(getattr(fragment, 'source', None)) if fragment else None
+        _raise_parse_error(message, fragment=fragment, source=getattr(fragment, 'source', None), source_lines=source_lines)
 
 
 class TycoValue:
@@ -1210,7 +1268,8 @@ class TycoValue:
 
     def _error(self, message):
         fragment = self.fragment or self.content
-        _raise_parse_error(message, fragment=fragment, source=self.source)
+        source_lines = self.context._get_source_lines(getattr(fragment, 'source', None) or self.source) if hasattr(self, 'context') and self.context else None
+        _raise_parse_error(message, fragment=fragment, source=self.source, source_lines=source_lines)
 
 
 class Struct(types.SimpleNamespace):
