@@ -1,20 +1,19 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [ "setuptools>=61.0", "wheel",]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "tyco"
-version = "0.1.6"
+version = "0.1.7"
 description = "A Python library for the Typed Configuration language"
-authors = [{name = "Matt Lauria", email = "matt@typedconfig.io"}]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
-keywords = ["configuration", "language", "parser"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-]
+keywords = [ "configuration", "language", "parser",]
+classifiers = [ "Programming Language :: Python :: 3", "Operating System :: OS Independent",]
+[[project.authors]]
+name = "Matt Lauria"
+email = "matt@typedconfig.io"
 
 [project.urls]
 Homepage = "https://typedconfig.io"
