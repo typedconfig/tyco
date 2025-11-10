@@ -68,7 +68,7 @@ class TycoParseError(TycoException):
                 visual_col = (visual_col // 8 + 1) * 8  # tab to next 8-char boundary
             else:
                 visual_col += 1
-        pointer = ' ' * (2 + visual_col) + '^'
+        pointer = ' ' * visual_col + '^'
         return f'{location}\n{line}\n{pointer}\n{self.__class__.__name__}: {self.message}'
 
 
