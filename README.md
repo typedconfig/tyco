@@ -29,7 +29,6 @@ import tyco
 # Load the bundled example.tyco file (included in the package)
 with tyco.open_example_file() as f:
   context = tyco.load(f)
-  # The path to the example file will be printed automatically
 
 # Access global configuration values
 globals = context.get_globals()
