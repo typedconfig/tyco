@@ -15,13 +15,6 @@ pip install tyco
 ```
 
 ### Basic Usage
-environment = globals.environment
-debug = globals.debug
-timeout = globals.timeout
-databases = objects['Database']  # List of Database instances
-servers = objects['Server']      # List of Server instances
-db_host = primary_db.host
-db_port = primary_db.port
 
 ```python
 import tyco
@@ -55,9 +48,7 @@ json_data = context.to_json()
 
 The package includes a ready-to-use example Tyco file at:
 
-  tyco/example.tyco
-
-([View on GitHub](https://github.com/typedconfig/tyco-python/blob/main/tyco/example.tyco))
+  [tyco/example.tyco](https://github.com/typedconfig/tyco-python/blob/main/tyco/example.tyco)
 
 You can inspect this file after installation, or load it directly as shown above.
 
