@@ -21,7 +21,7 @@ import tyco
 
 # Load the bundled example.tyco file (included in the package)
 with tyco.open_example_file() as f:
-  context = tyco.load(f)
+  context = tyco.load(f.name)
 
 # Access global configuration values
 globals = context.get_globals()
@@ -242,62 +242,60 @@ Resource:
 
 ### Core Functions
 
-#### `tyco.load(filepath)`
-Load and parse a Tyco configuration file.
+#### `tyco.load(path: str | Path) -> TycoContext`
+Parses one file (or every `*.tyco` file underneath a directory) and returns a rendered
+`TycoContext`.
 
 ```python
-config = tyco.load('app.tyco')
+import tyco
+
+context = tyco.load("config.tyco")
 ```
 
-**Parameters:**
-- `filepath` (str | Path): Path to the Tyco configuration file
-
-**Returns:** TycoContext object with attribute access
-
-#### `tyco.loads(content)`
-Parse Tyco configuration from a string.
+#### `tyco.loads(content: str) -> TycoContext`
+Parses Tyco configuration from an in-memory string—handy for tests.
 
 ```python
-config_text = """
+context = tyco.loads("""
 str app_name: MyApp
 int port: 8080
-"""
-config = tyco.loads(config_text)
+""")
 ```
 
-**Parameters:**
-- `content` (str): Tyco configuration content as string
+Both helpers raise `tyco.TycoParseError` on syntax issues (subclass of `tyco.TycoException`).
 
-**Returns:** TycoContext object
+### TycoContext Helpers
 
-### Configuration Access
+Once parsing succeeds you interact with the returned `TycoContext`.
 
 ```python
-config = tyco.load('config.tyco')
+context = tyco.load("tyco/example.tyco")
 
-# Access global variables
-app_name = config.app_name
-port = config.port
+globals = context.get_globals()
+print(globals.environment)     # -> "production"
+print(globals.timeout)         # -> 30
 
-# Access struct instances (returns list)
-servers = config.Server  # All Server instances
-first_server = config.Server[0]  # First server
-server_names = [s.name for s in config.Server]  # Extract names
+objects = context.get_objects()
+databases = objects["Database"]
+primary = databases[0]
+print(primary.name, primary.host, primary.port)
 
-# Access specific fields
-db_host = config.Database[0].host
-api_url = config.Service[0].url  # Template expanded
-
-# Handle nullable fields
-description = config.Server[0].description  # May be None
-if description is not None:
-    print(f"Server description: {description}")
+json_payload = context.to_json()  # Plain dict ready for json.dumps(...)
 ```
+
+- `get_globals()` returns a `tyco.Struct` instance, so you can use attribute access (`globals.debug`)
+  or dictionary-like access (`globals['debug']`).
+- `get_objects()` returns `dict[str, list[Struct]]`. Each struct instance exposes its declared
+  fields as attributes.
+- `to_json()` materialises the canonical JSON-compatible dictionary (matching the shared test
+  suite expectations).
 
 ### Working with References
 
+References are resolved automatically—fields declared as another struct type give you the actual
+instance:
+
 ```tyco
-# Define structs with primary keys
 User:
  *str username:
   str email:
@@ -307,18 +305,45 @@ User:
 Project:
  *str name:
   User owner:
-  - webapp, User(alice)  # Reference alice by username
-  - api, User(bob)       # Reference bob by username
+  - webapp, User(alice)
+  - api,   User(bob)
 ```
 
 ```python
-# Access referenced objects
-config = tyco.load('config.tyco')
+context = tyco.load("projects.tyco")
+projects = context.get_objects()["Project"]
 
-# Get the project and its owner
-webapp = config.Project[0]  # First project
-owner = webapp.owner        # This is the actual User instance
-print(f"Project {webapp.name} owned by {owner.username} ({owner.email})")
+webapp = projects[0]
+owner = webapp.owner           # Already resolved to the underlying User instance
+print(f"{webapp.name} -> {owner.username} ({owner.email})")
+```
+
+### Custom Struct Classes
+
+You can subclass `tyco.Struct` to add validation or helper methods. Registering a subclass lets the
+parser materialise instances of your class automatically:
+
+```python
+import tyco
+
+class Database(tyco.Struct):
+    def validate(self):
+        if self.port <= 0:
+            raise ValueError("port must be positive")
+
+context = tyco.load("tyco/example.tyco")
+dbs = context.get_objects()["Database"]
+print(isinstance(dbs[0], Database))  # True
+```
+
+### Bundled Example
+
+Use `tyco.open_example_file()` to access the packaged `tyco/example.tyco` no matter where the
+package is installed:
+
+```python
+with tyco.open_example_file() as handle:
+    context = tyco.load(handle.name)
 ```
 
 ## 🧪 Testing

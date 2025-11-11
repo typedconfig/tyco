@@ -1,7 +1,11 @@
-import shutil
 import json
+import os
+import shutil
 from pathlib import Path
+
 import pytest
+
+import tyco
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,3 +115,47 @@ def test_include_defaults_nooverride(tmp_path):
     shutil.copy(base_src.resolve(), base_dst)
     
     _run_and_compare('include_defaults_nooverride.tyco', 'include_defaults_nooverride.json', tmp_path)
+
+
+def test_load_from_text_stream():
+    example = ROOT / 'example.tyco'
+    with open(example) as handle:
+        context = tyco.load(handle)
+
+    globals_obj = context.get_globals()
+    assert globals_obj.environment == 'production'
+    assert globals_obj.timeout == 30
+
+
+def test_load_from_file_descriptor():
+    example = ROOT / 'example.tyco'
+    fd = os.open(example, os.O_RDONLY)
+    try:
+        context = tyco.load(fd)
+    finally:
+        os.close(fd)
+
+    globals_obj = context.get_globals()
+    assert globals_obj.environment == 'production'
+    assert globals_obj.timeout == 30
+
+
+def test_readme_example_usage():
+    with tyco.open_example_file() as handle:
+        context = tyco.load(handle.name)
+
+    globals_obj = context.get_globals()
+    assert globals_obj.environment == 'production'
+    assert globals_obj.debug is False
+    assert globals_obj.timeout == 30
+
+    objects = context.get_objects()
+    databases = objects['Database']
+    servers = objects['Server']
+
+    assert databases[0].name == 'primary'
+    assert databases[0].host == 'localhost'
+    assert databases[0].port == 5432
+    assert servers[0].port == 8080
+    assert servers[0].name == 'web1'
+    assert context.to_json()['features'] == ['auth', 'analytics', 'caching']

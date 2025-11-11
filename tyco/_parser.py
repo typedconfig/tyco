@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import io
 import os
 import re
 import sys
@@ -12,7 +13,7 @@ import datetime
 import itertools
 import importlib
 import collections
-from typing import Union
+from typing import TextIO, Union
 
 
 __all__ = ['Struct', 'load', 'loads', 'TycoException', 'TycoParseError']
@@ -255,6 +256,15 @@ class TycoLexer:
             context._path_cache[path] = lexer
             lexer.process()
         return context._path_cache[path]
+
+    @classmethod
+    def from_text_io_wrapper(cls, context, f):
+        lines = list(f.readlines())
+        path = getattr(f, 'name', '<string>')
+        lexer = cls(context, lines, path)
+        context._path_cache[id(lexer)] = lexer
+        lexer.process()
+        return lexer
 
     @classmethod
     def from_string(cls, context, content):
@@ -1148,7 +1158,7 @@ class Struct(types.SimpleNamespace):
         pass
 
 
-def load(path: Union[str, pathlib.Path]) -> 'TycoContext':
+def load(path: Union[str, pathlib.Path, TextIO, int]) -> 'TycoContext':
     """
     Load Tyco configuration from disk and return the rendered context.
 
@@ -1156,15 +1166,28 @@ def load(path: Union[str, pathlib.Path]) -> 'TycoContext':
     parsed; if it is a single file only that document is processed.  The
     returned context can be interrogated for globals, structs, JSON, or
     converted into concrete Python objects.
+
+    The `path` argument may also be an already-open text stream or a raw file
+    descriptor; the loader will read from that stream without touching the
+    filesystem again.
     """
     context = TycoContext()
-    if os.path.isdir(path):
-        dir_path = pathlib.Path(path)
-        paths = [str(p) for p in dir_path.rglob('*.tyco')]
+    if isinstance(path, io.TextIOBase):
+        TycoLexer.from_text_io_wrapper(context, path)
+    elif isinstance(path, int):
+        fd = os.fdopen(path, 'r', closefd=False)
+        try:
+            TycoLexer.from_text_io_wrapper(context, fd)
+        finally:
+            fd.close()
     else:
-        paths = [str(path)]
-    for path in paths:
-        TycoLexer.from_path(context, path)
+        if os.path.isdir(path):
+            dir_path = pathlib.Path(path)
+            paths = [str(p) for p in dir_path.rglob('*.tyco')]
+        else:
+            paths = [str(path)]
+        for path in paths:
+            TycoLexer.from_path(context, path)
     context._render_content()
     return context
 
