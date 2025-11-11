@@ -23,7 +23,7 @@ def run_in_process_typo_parser(path):
     Returns the JSON-serializable structure produced by context.to_json().
     """
     try:
-        from tyco.parser import TycoContext, TycoLexer  # type: ignore
+        from tyco._parser import TycoContext, TycoLexer  # type: ignore
     except Exception as e:
         pytest.skip(f'parser.py is not importable or raised during import: {e}')
 

@@ -137,7 +137,7 @@ User:
     validator_file = config_dir / "app.py"
     validator_file.write_text("""
 import re
-from tyco.parser import Struct
+from tyco._parser import Struct
 
 class User(Struct):
     def validate(self):
@@ -324,7 +324,7 @@ Port:
     
     # Create validator that checks port ranges
     (config_dir / "network.py").write_text("""
-from tyco.parser import Struct
+from tyco._parser import Struct
 
 class Port(Struct):
     def validate(self):

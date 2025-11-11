@@ -1,1 +1,1 @@
-from .parser import load, loads, Struct
+from ._parser import load, loads, Struct

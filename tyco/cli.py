@@ -3,7 +3,7 @@ import json
 import sys
 from pathlib import Path
 
-from .parser import TycoParseError, load
+from ._parser import TycoParseError, load
 
 
 def build_parser():
